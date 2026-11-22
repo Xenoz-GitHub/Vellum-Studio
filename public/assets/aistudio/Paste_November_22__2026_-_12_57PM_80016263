@@ -1,0 +1,1239 @@
+# MASTER BUILD PROMPT — PREMIUM AI PRESENTATION DESIGN PLATFORM
+
+## 1. YOUR ROLE
+
+Act as a principal full-stack engineer, senior TypeScript architect, product designer, AI systems engineer, presentation-engine developer, and UX specialist.
+
+Your task is to design and build a complete, production-oriented web application for creating, editing, generating, sharing, importing, and exporting professional presentations.
+
+This must be an original product with its own design identity, visual language, component system, template system, and intelligent presentation-generation engine.
+
+Do not create a generic AI slide generator.
+
+Do not create a generic SaaS dashboard with a presentation editor attached.
+
+Do not create a low-quality Canva clone.
+
+I am the developer and product owner. I intend to continuously upload my own custom elements, presentation layouts, templates, typography systems, design assets, patterns, and component collections. The platform must be architected around this extensibility.
+
+Use TypeScript throughout the application. Maintain strict typing, reusable architecture, clean separation of concerns, and scalable application structure.
+
+Do not stop at a conceptual prototype. Build working features, connect real application logic, validate all interactions, and avoid fake or decorative functionality.
+
+## 2. PRODUCT VISION
+
+Build a modern, intelligent presentation-design platform where users can:
+
+- Create presentations from detailed prompts.
+- Generate presentations from uploaded PDFs, images, documents, and reference materials.
+- Upload several reference images and explain the desired visual direction.
+- Edit every generated slide and its individual elements.
+- Start from professionally designed templates.
+- Use custom components and layouts provided by the administrator.
+- Upload existing presentations and edit supported content.
+- Organize projects in a personal dashboard.
+- Share projects through secure links.
+- Collaborate through permission-controlled sharing.
+- Export presentations into editable PowerPoint files.
+- Import and export supported external formats.
+- Maintain profiles, achievements, progress, and creative streaks.
+
+The platform should feel like a serious creative application used by designers, educators, students, teams, agencies, and businesses.
+
+The generated result should look deliberately art-directed, not automatically assembled.
+
+## 3. TECHNOLOGY AND ARCHITECTURE
+
+Use the following as the preferred technical foundation. If the repository already has a working stack, inspect it before replacing anything.
+
+Frontend:
+- Next.js with App Router.
+- React.
+- TypeScript with strict mode.
+- Tailwind CSS for styling utilities.
+- Custom CSS variables and design tokens.
+- Reusable, accessible React components.
+- Framer Motion or Motion for purposeful animations.
+- Zustand or an equivalent predictable editor-state solution.
+- Zod for runtime validation.
+
+Backend:
+- Next.js server routes or a clearly separated TypeScript backend.
+- PostgreSQL database.
+- Prisma ORM.
+- Secure authentication and session management.
+- Role-based access control.
+- Object storage compatible with S3 or Cloudflare R2.
+- Background jobs for expensive AI tasks, imports, and exports.
+- Redis-backed job processing where appropriate.
+
+AI:
+- A provider-independent AI service layer.
+- Gemini integration as a configurable provider.
+- Structured JSON responses.
+- Multimodal document and image processing.
+- Prompt orchestration and validation.
+- Retry, timeout, and error-handling mechanisms.
+
+Presentation generation:
+- A structured internal presentation document format.
+- A dedicated layout and composition engine.
+- A dedicated presentation renderer.
+- A PPTX export adapter, with PptxGenJS as a candidate implementation.
+- PDF and image export services.
+
+Do not place API keys, secret credentials, or administrative privileges in client-side code.
+
+Create modular services so that the AI provider, export engine, file storage, and other integrations can be replaced independently.
+
+## 4. DESIGN DIRECTION — NO GENERIC AI SLOP
+
+This is one of the most important requirements.
+
+The visual identity must feel premium, intentional, sophisticated, clean, and carefully designed.
+
+Use the visual quality of professional creative software as inspiration, but develop an original product identity. Do not copy Canva's interface or branding.
+
+Design principles:
+
+- Strong visual hierarchy.
+- Carefully controlled whitespace.
+- Consistent spacing.
+- Excellent typography.
+- Distinctive layouts.
+- Clear navigation.
+- Refined interactions.
+- Precise alignment.
+- Subtle borders and shadows.
+- Beautiful empty states.
+- Purposeful use of color.
+- Consistent design language across every page.
+
+Avoid:
+- Generic AI-generated dashboard aesthetics.
+- Excessive purple and blue gradients.
+- Random glassmorphism.
+- Excessive rounded cards.
+- Unnecessary floating decorative shapes.
+- Huge empty hero sections without meaningful content.
+- Random icons and emoji as interface decoration.
+- Inconsistent spacing.
+- Unnecessary animations.
+- Repetitive card grids.
+- Fake statistics and meaningless charts.
+- Placeholder layouts presented as finished products.
+
+Start with a refined editorial creative-software aesthetic.
+
+Suggested starting palette:
+- Warm neutral background: #F7F6F2.
+- Primary ink: #191B1F.
+- Secondary text: #727780.
+- Accent color: #F15B43.
+- Subtle borders: #E6E4DE.
+- Surface: #FFFFFF.
+
+Treat these as initial design tokens, not permanent restrictions. Allow additional themes and dark mode.
+
+Typography:
+- Use a modern, highly readable interface font.
+- Support expressive display fonts for presentations.
+- Use separate typography roles for headings, body text, labels, numbers, and code-like metadata.
+- Consider Geist Sans, Inter, DM Sans, Manrope, and other suitable fonts.
+- Implement variable font support where available.
+- Build a font-management system.
+- Allow administrators to upload properly licensed custom font files.
+- Let users preview available fonts before applying them.
+- Ensure exported presentations use the selected typography whenever technically supported.
+
+Create an actual design system with:
+- Color tokens.
+- Typography tokens.
+- Spacing tokens.
+- Border tokens.
+- Shadow tokens.
+- Radius tokens.
+- Animation tokens.
+- Component variants.
+- Light and dark themes.
+
+The interface should feel like one cohesive application, not a collection of separately generated pages.
+
+## 5. RESPONSIVE DESIGN — MOBILE IS A FIRST-CLASS PRODUCT
+
+Mobile responsiveness is mandatory.
+
+Do not simply shrink the desktop interface until it fits a phone.
+
+The mobile experience should be purposefully redesigned while retaining the full creative workflow.
+
+Test and optimize for:
+- 360px.
+- 375px.
+- 390px.
+- 414px.
+- 430px.
+- Tablets.
+- Small laptops.
+- Standard desktops.
+- Large displays.
+
+Desktop editor:
+- Main presentation canvas in the center.
+- Slide thumbnail navigation on the left.
+- Contextual editing inspector on the right.
+- Main toolbar across the top.
+- Clear project controls and sharing actions.
+
+Mobile editor:
+- Full-width presentation canvas.
+- Touch-friendly editing controls.
+- Contextual bottom toolbar.
+- Expandable bottom sheets for properties.
+- Collapsible slide navigation.
+- Touch-based element selection.
+- Touch-based object resizing and movement.
+- Pinch-to-zoom where appropriate.
+- Accessible undo and redo.
+- Convenient access to text, images, shapes, and templates.
+- Full-screen presentation preview.
+- Responsive typography controls.
+
+Do not display three desktop sidebars on a mobile screen.
+
+Design the mobile editor as its own experience, inspired by the convenience and usability of leading mobile creative applications without copying their interface.
+
+Support portrait and landscape orientations.
+
+Touch targets should generally be at least 44px. Ensure that important controls remain accessible and are not hidden behind mobile browser controls or the keyboard.
+
+Test actual interactions, not only responsive screenshots.
+
+## 6. REQUIRED APPLICATION PAGES
+
+### A. Landing Page
+
+Build a premium marketing landing page.
+
+Include:
+- Distinctive navigation.
+- Clear product identity.
+- Strong headline.
+- Short product explanation.
+- Primary call to action.
+- Secondary demonstration action.
+- Realistic presentation previews.
+- Examples of different design styles.
+- Feature explanations.
+- How the generation workflow works.
+- Template showcase.
+- Editing and customization showcase.
+- Import and export information.
+- Frequently asked questions.
+- Footer and legal links.
+
+The hero should communicate that this is an intelligent presentation design and editing platform.
+
+Do not use meaningless AI marketing language.
+
+Use high-quality sample slide compositions as visual previews.
+
+### B. Authentication and Onboarding
+
+Support:
+- Account registration.
+- Login.
+- Secure logout.
+- Password recovery.
+- OAuth where configured.
+- User onboarding.
+- Profile creation.
+- Optional selection of design preferences.
+- First-project creation.
+
+### C. User Dashboard
+
+Create a functional dashboard.
+
+Include:
+- Welcome section.
+- Create presentation action.
+- Prompt-based presentation creation.
+- Recent projects.
+- Project thumbnails.
+- Search.
+- Sorting and filtering.
+- Presentation categories.
+- Saved templates.
+- Favorite designs.
+- Recently imported files.
+- Drafts.
+- Project management.
+- User activity.
+- Streak and achievement summary.
+
+Provide different meaningful empty states for a new account and an established account.
+
+### D. Presentation Editor
+
+This is the central feature of the application.
+
+Build an actual interactive presentation editor.
+
+It must support:
+- Multiple slides.
+- Slide selection.
+- Slide creation and deletion.
+- Slide duplication.
+- Slide reordering.
+- Slide backgrounds.
+- Text editing.
+- Font selection.
+- Font sizing.
+- Font weight.
+- Line spacing.
+- Letter spacing.
+- Text alignment.
+- Text colors.
+- Shapes.
+- Images.
+- Icons.
+- Tables.
+- Charts.
+- Custom components.
+- Element resizing.
+- Element rotation.
+- Element positioning.
+- Layers.
+- Grouping and ungrouping.
+- Locking and unlocking.
+- Alignment guides.
+- Snap-to-grid.
+- Undo and redo.
+- Copy and paste.
+- Keyboard shortcuts.
+- Zoom controls.
+- Full-screen preview.
+- Slide notes.
+- Autosave.
+- Manual save.
+- Version history.
+
+The editing interface must feel responsive and precise.
+
+Do not generate slides as flattened images. Text, shapes, images, and supported design components must remain separate editable objects.
+
+Use a unified internal presentation document model rather than making every feature implement its own representation.
+
+### E. Template and Design Library
+
+Create a searchable library of professionally designed templates.
+
+Categories can include:
+- Business.
+- Education.
+- Research.
+- Pitch decks.
+- Marketing.
+- Portfolio.
+- Reports.
+- Editorial.
+- Minimalist.
+- Creative.
+- Data visualization.
+- Personal presentations.
+
+Each template should support:
+- Preview.
+- Description.
+- Category.
+- Aspect ratio.
+- Color theme.
+- Typography.
+- Number of slides.
+- Author or source.
+- Version.
+- Compatibility information.
+
+Users should be able to preview a template and create an editable copy.
+
+The library must be connected to the administrator's custom-template system.
+
+### F. User Profile
+
+Include:
+- User information.
+- Avatar.
+- Username.
+- Account settings.
+- Saved presentations.
+- Created presentations.
+- Favorite templates.
+- Uploaded assets.
+- Achievement collection.
+- XP or progress.
+- Current streak.
+- Longest streak.
+- Preferences.
+- Theme preferences.
+- Font preferences.
+- Notification settings.
+- Security settings.
+
+### G. Restricted Admin Panel
+
+Create a separate administrator experience.
+
+Access must be enforced server-side through secure role-based authorization.
+
+Only authorized administrators may access administrative features.
+
+Admin functions:
+
+1. Template management.
+   - Upload templates.
+   - Create templates.
+   - Edit metadata.
+   - Preview templates.
+   - Publish.
+   - Unpublish.
+   - Archive.
+   - Manage template versions.
+
+2. Custom component management.
+   - Register new components.
+   - Configure component properties.
+   - Upload supporting assets.
+   - Define component categories.
+   - Add previews.
+   - Define accepted property schemas.
+   - Configure layout constraints.
+   - Enable or disable components.
+   - Version and roll back components.
+
+3. Design system management.
+   - Manage color tokens.
+   - Manage spacing tokens.
+   - Manage typography tokens.
+   - Manage themes.
+   - Upload approved fonts.
+   - Manage layout presets.
+   - Manage animation presets.
+
+4. AI configuration.
+   - Manage prompt versions.
+   - Manage generation settings.
+   - Configure model providers.
+   - Manage supported generation modes.
+   - View processing failures.
+   - Monitor usage and performance.
+
+5. User management.
+   - Search accounts.
+   - View account status.
+   - Manage authorized roles.
+   - Suspend or restore accounts when necessary.
+   - Inspect relevant audit records.
+
+6. System management.
+   - Job monitoring.
+   - Upload monitoring.
+   - Export monitoring.
+   - Error logs.
+   - Audit logs.
+   - Feature flags.
+   - Application settings.
+
+Do not rely on hiding an admin link in the frontend as security.
+
+Never execute untrusted JavaScript uploaded as a component. Use a versioned, trusted component registry and declarative manifests for admin-managed component configuration. New executable component implementations should go through a controlled deployment process.
+
+## 7. THE CORE PRESENTATION DOCUMENT MODEL
+
+Create a canonical typed presentation schema.
+
+A presentation should include:
+- Presentation ID.
+- Owner.
+- Title.
+- Description.
+- Dimensions.
+- Aspect ratio.
+- Theme.
+- Slide collection.
+- Assets.
+- Metadata.
+- Source references.
+- Creation date.
+- Modified date.
+- Version information.
+
+Each slide should include:
+- Slide ID.
+- Dimensions.
+- Background.
+- Elements.
+- Layout metadata.
+- Speaker notes.
+- Ordering information.
+
+Each element should have a unique ID, position, dimensions, rotation, layer order, visibility, lock state, style, and type-specific properties.
+
+Define strongly typed element variants for:
+- Text.
+- Shape.
+- Image.
+- Icon.
+- Chart.
+- Table.
+- Group.
+- Custom component.
+
+Validate all document data with a runtime schema.
+
+Maintain a stable coordinate system and predictable scaling rules. Define explicit conversion between internal slide coordinates and PowerPoint units.
+
+The same document model must drive rendering, editing, autosaving, version history, and exporting.
+
+## 8. CUSTOM DESIGN COMPONENT ECOSYSTEM
+
+My most important long-term requirement is extensibility.
+
+Build the application so I can continuously add my own:
+- Slide layouts.
+- Design patterns.
+- Components.
+- Charts.
+- Infographics.
+- Text compositions.
+- Diagram systems.
+- Image treatments.
+- Visual assets.
+- Templates.
+- Theme presets.
+- Typography combinations.
+- Background systems.
+- Presentation structures.
+
+Each custom component should have a typed manifest containing:
+- Component ID.
+- Name.
+- Description.
+- Category.
+- Version.
+- Thumbnail.
+- Required assets.
+- Property schema.
+- Default values.
+- Layout constraints.
+- Responsive behavior.
+- Compatibility information.
+
+Components should be registered centrally and made available to both the editor and generation engine.
+
+A custom component should not require rewriting the entire application.
+
+Allow the administrator to choose whether a component is available for:
+- Manual insertion.
+- Template use.
+- AI generation.
+- Specific presentation categories.
+
+Create compatibility checks so old presentations remain renderable when components are updated.
+
+## 9. INTELLIGENT PRESENTATION GENERATION ENGINE
+
+Do not make the AI generate random slide designs independently.
+
+Build a multi-stage generation pipeline.
+
+### Stage 1: Input Understanding
+
+Accept:
+- Long prompts.
+- Short prompts.
+- Multiple images.
+- PDFs.
+- PPTX files.
+- DOCX files.
+- Text documents.
+- Reference presentations.
+- Brand assets.
+- Logos.
+- Screenshots.
+- Tables and structured data.
+
+Extract useful content and metadata.
+
+Identify:
+- Main subject.
+- Audience.
+- Presentation purpose.
+- Desired tone.
+- Desired length.
+- Important facts.
+- Key messages.
+- Data points.
+- Relevant images.
+- References.
+- Design preferences.
+- Constraints.
+
+Do not silently discard important source material.
+
+Preserve traceability between extracted information and the original uploaded source.
+
+### Stage 2: Semantic Content Processing
+
+Build a content-analysis service that converts raw material into meaningful structured blocks.
+
+Examples:
+- Title.
+- Subtitle.
+- Main argument.
+- Supporting point.
+- Explanation.
+- Statistic.
+- Quote.
+- Timeline.
+- Comparison.
+- Process.
+- Conclusion.
+- Reference.
+
+Build a semantic classification system for recognizing the role and importance of each content block.
+
+Implement a custom application-level tokenizer and normalization layer for prompt analysis, terminology, metadata, and content classification where useful.
+
+IMPORTANT: Distinguish application-specific tokens and design tokens from the underlying AI model tokenizer. Do not pretend that an application tokenizer changes the proprietary tokenization behavior of the selected model.
+
+Make the tokenizer extensible and versioned. Support custom vocabulary, aliases, semantic labels, and domain-specific terminology.
+
+### Stage 3: Presentation Planning
+
+Create a slide outline before rendering.
+
+Determine:
+- Narrative structure.
+- Opening.
+- Context.
+- Main sections.
+- Supporting evidence.
+- Data presentation.
+- Visual storytelling opportunities.
+- Conclusion.
+- References where relevant.
+
+Avoid repetitive slide structures.
+
+Use the source information accurately. Do not invent statistics, facts, research, quotations, or citations.
+
+Allow users to review and edit the proposed outline before generating the final slides.
+
+### Stage 4: Reference Recognition
+
+Analyze uploaded reference images and presentations.
+
+Recognize visual characteristics such as:
+- Color palette.
+- Typography style.
+- Layout structure.
+- Content hierarchy.
+- Image placement.
+- Spacing.
+- Grid systems.
+- Composition patterns.
+- Visual density.
+- Alignment.
+- Shape language.
+- Decorative style.
+
+Convert these observations into structured design preferences.
+
+Allow users to choose between:
+- Match the general visual direction.
+- Use the reference as inspiration.
+- Extract a brand palette.
+- Apply the design to a new presentation.
+- Recreate a similar composition using original content.
+
+Do not automatically copy copyrighted designs or assets. Extract high-level visual principles and create original compositions.
+
+### Stage 5: Design System Selection
+
+Choose a design system based on:
+- User's selected preferences.
+- Reference material.
+- Presentation category.
+- Audience.
+- Content density.
+- Available components.
+- Typography constraints.
+- Color accessibility.
+- Template compatibility.
+
+Prioritize my custom uploaded design systems and approved component registry.
+
+### Stage 6: Layout and Composition Engine
+
+Create a dedicated layout algorithm.
+
+Do not depend entirely on the AI model to decide every pixel position.
+
+Use a hybrid system combining:
+- AI-generated structural suggestions.
+- Deterministic layout rules.
+- Constraint solving.
+- Grid systems.
+- Alignment rules.
+- Spacing rules.
+- Typography constraints.
+- Component compatibility.
+- Visual hierarchy.
+- Content-density analysis.
+
+Develop reusable layout patterns for:
+- Title slides.
+- Section dividers.
+- Text with image.
+- Full-bleed images.
+- Comparisons.
+- Timelines.
+- Process diagrams.
+- Data slides.
+- Charts.
+- Statistics.
+- Quotes.
+- Conclusions.
+- References.
+
+The layout engine should evaluate several candidate compositions when practical and select the strongest one.
+
+### Stage 7: Visual Quality Scoring
+
+Create a design-quality evaluation engine.
+
+Evaluate:
+- Alignment.
+- Spacing.
+- Visual hierarchy.
+- Typography consistency.
+- Contrast.
+- Readability.
+- Content density.
+- Visual balance.
+- Whitespace.
+- Image quality.
+- Repeated layouts.
+- Component consistency.
+- Slide-to-slide rhythm.
+- Reference-style alignment.
+
+Use hard constraints for unacceptable output, such as overflow, missing elements, unreadable text, and invalid dimensions.
+
+Use weighted quality scores for softer design decisions.
+
+A generated slide should be corrected when quality checks identify obvious defects.
+
+Do not claim a score means a design is objectively perfect. Treat it as a diagnostic tool.
+
+### Stage 8: Generation and Rendering
+
+Generate structured presentation data.
+
+Validate the result.
+
+Render it through the editor's native presentation renderer.
+
+Keep every supported object editable.
+
+Create a structured correction loop for weak layouts and rendering errors.
+
+Never produce raw generated HTML as the canonical presentation document.
+
+### Stage 9: User Feedback
+
+Learn from user adjustments only with appropriate privacy controls and consent.
+
+Track useful preferences such as:
+- Preferred themes.
+- Frequently used components.
+- Preferred layouts.
+- Typography preferences.
+- Common editor adjustments.
+
+Do not use private uploaded content to train or improve shared models without explicit permission.
+
+## 10. THE DESIGN TOKEN AND PATTERN ENGINE
+
+Create a first-class design token registry.
+
+Support:
+- Color tokens.
+- Typography tokens.
+- Font scales.
+- Spacing tokens.
+- Border styles.
+- Radius values.
+- Shadows.
+- Grid definitions.
+- Animation definitions.
+- Theme presets.
+- Component-specific tokens.
+
+Tokens should have names, values, descriptions, categories, versions, and optional compatibility rules.
+
+Allow custom token sets for different templates and brands.
+
+Build a pattern recognition system that can associate extracted visual patterns with existing registered components and layouts.
+
+The generation engine should prefer known, approved patterns rather than producing arbitrary visual structures.
+
+## 11. FILE UPLOAD AND DOCUMENT PROCESSING
+
+Create a reliable upload system.
+
+Support appropriate handling of:
+- PDF.
+- PPTX.
+- DOCX.
+- PNG.
+- JPG/JPEG.
+- WebP.
+- SVG.
+- Supported font formats.
+- Other explicitly supported assets.
+
+Requirements:
+- Upload progress.
+- File validation.
+- File size limits.
+- MIME verification.
+- Secure storage.
+- Signed download URLs.
+- Background processing.
+- Error handling.
+- Upload history.
+- Asset library.
+- Clear processing status.
+
+For PDFs, extract text and analyze page visuals.
+
+For images, support visual reference analysis and asset placement.
+
+For existing PPTX files, reconstruct all supported objects into the internal document model.
+
+For flattened PDF pages, distinguish between preserving the original page as an image and reconstructing editable slide elements. Do not falsely claim that every flattened PDF can be converted perfectly into editable objects.
+
+Create a clear import report showing unsupported or partially preserved elements.
+
+## 12. IMPORT AND EXPORT
+
+Implement a dedicated import/export service layer.
+
+Export formats:
+- Editable PPTX.
+- PDF.
+- PNG.
+- JPEG.
+- Other formats where technically supported.
+
+PowerPoint export requirements:
+- Preserve editable text.
+- Preserve editable shapes.
+- Preserve supported images.
+- Preserve supported tables and charts.
+- Preserve positioning and sizing.
+- Maintain aspect ratio.
+- Apply themes and fonts where supported.
+- Handle multiple slides.
+- Validate the generated file.
+
+Do not rasterize the entire presentation when editable output is required.
+
+Include compatibility tests using actual PowerPoint-compatible applications.
+
+Canva integration:
+- Investigate and use the official Canva developer APIs.
+- Implement supported authentication and authorization flows.
+- Implement supported import/export workflows.
+- Respect API permissions, supported formats, and account eligibility.
+- Provide clear fallback workflows using PPTX when a direct native integration is unavailable.
+- Never promise unsupported bidirectional synchronization or use browser scraping.
+
+Create adapters so future integrations with other presentation platforms can be added cleanly.
+
+## 13. SHARING AND COLLABORATION
+
+Allow users to share presentations through links.
+
+Support:
+- Private presentations.
+- Read-only links.
+- Editable links.
+- Permission-controlled access.
+- Link expiration.
+- Link revocation.
+- Password protection where appropriate.
+- Duplicate presentation.
+- Version history.
+- Restore previous versions.
+
+The public sharing page should render the presentation cleanly.
+
+Permission checks must be enforced on the server.
+
+Design a future-compatible architecture for real-time collaboration. If implementing real-time collaboration, use a reliable conflict-resolution approach rather than overwriting simultaneous edits.
+
+## 14. GAMIFICATION AND STREAKS
+
+Implement tasteful, optional gamification.
+
+Features:
+- Daily creative streak.
+- Weekly activity.
+- XP or progress points.
+- Achievement badges.
+- Milestones.
+- Completed-project history.
+- Personal creative goals.
+
+Reward meaningful actions instead of meaningless repeated clicks.
+
+Define streak rules clearly and use the user's appropriate timezone.
+
+Avoid manipulative notifications or punishing missed days.
+
+Allow users to disable gamification features.
+
+## 15. DATABASE AND DATA MODEL
+
+Design a relational data model for the platform.
+
+Consider entities such as:
+- User.
+- Workspace.
+- Presentation.
+- Slide.
+- PresentationElement.
+- Asset.
+- UploadedDocument.
+- Template.
+- TemplateVersion.
+- CustomComponent.
+- ComponentVersion.
+- DesignTokenSet.
+- Theme.
+- ShareLink.
+- PresentationVersion.
+- GenerationJob.
+- ImportJob.
+- ExportJob.
+- Achievement.
+- UserActivity.
+- UserStreak.
+- UserRole.
+- AdminAuditLog.
+
+Use appropriate indexes, relationships, constraints, and timestamps.
+
+Ensure data ownership and permissions are unambiguous.
+
+Avoid storing duplicate or inconsistent versions of the same information.
+
+## 16. SECURITY AND RELIABILITY
+
+Build security into the application from the beginning.
+
+Requirements:
+- Secure authentication.
+- Server-side role checks.
+- Strict admin access control.
+- File upload validation.
+- Malware scanning where supported.
+- Input validation.
+- Output validation.
+- Rate limits.
+- AI usage limits.
+- Secure file access.
+- Signed URLs.
+- CSRF protections where applicable.
+- Secure session handling.
+- Database access control.
+- Audit trails.
+- Environment variable management.
+- Error monitoring.
+- Backup strategy.
+
+Prevent common file-upload risks, including malicious files, oversized uploads, SVG injection, and unsafe remote URL fetching.
+
+Do not expose private presentations through predictable public URLs.
+
+## 17. PERFORMANCE AND ACCESSIBILITY
+
+The editor must remain responsive with realistic presentation sizes.
+
+Optimize:
+- Rendering.
+- Slide switching.
+- Image loading.
+- Lazy loading.
+- Asset management.
+- Autosaving.
+- Background jobs.
+- State updates.
+- Mobile gestures.
+
+Use virtualization where it genuinely improves performance.
+
+Support keyboard navigation, semantic controls, accessible labels, visible focus, and sufficient contrast.
+
+Respect the user's reduced-motion preference.
+
+Animations must never interfere with editing.
+
+## 18. ANIMATION SYSTEM
+
+Create a consistent animation language.
+
+Use subtle transitions for:
+- Navigation.
+- Dialogs.
+- Menus.
+- Bottom sheets.
+- Inspector panels.
+- Slide transitions.
+- Notifications.
+- Loading states.
+- Drag-and-drop feedback.
+- Selection states.
+- Template previews.
+
+Use carefully chosen durations and easing curves.
+
+Do not animate everything.
+
+Avoid distracting animations, excessive parallax, and unnecessarily heavy effects.
+
+Presentation animation and application interface animation should be separate systems.
+
+## 19. RECOMMENDED USER WORKFLOW
+
+The main creation journey should be:
+
+1. User opens the dashboard.
+2. User selects Create Presentation.
+3. User enters a prompt or uploads source materials.
+4. User selects presentation preferences or supplies references.
+5. AI analyzes the information.
+6. The system creates a structured outline.
+7. User reviews the outline.
+8. The design engine selects approved layouts, patterns, tokens, and components.
+9. The generator creates editable slides.
+10. The quality engine evaluates the presentation.
+11. The user opens the editor.
+12. The user edits individual elements.
+13. The system autosaves.
+14. The user previews the presentation.
+15. The user shares or exports it.
+
+Keep the workflow understandable. Do not expose complicated technical settings to normal users unless they are useful.
+
+## 20. PROJECT STRUCTURE AND CODE QUALITY
+
+Organize the code by feature and domain.
+
+Keep separate modules for:
+- Authentication.
+- Dashboard.
+- Editor.
+- Presentation document model.
+- Rendering.
+- Component registry.
+- Templates.
+- Design tokens.
+- AI orchestration.
+- Content processing.
+- Layout engine.
+- Reference recognition.
+- File processing.
+- Import/export.
+- Sharing.
+- Profiles.
+- Gamification.
+- Administration.
+
+Use:
+- Strict TypeScript.
+- Shared types.
+- Reusable components.
+- Clear service interfaces.
+- Runtime validation.
+- Consistent error handling.
+- Meaningful names.
+- Small maintainable modules.
+- Appropriate tests.
+
+Avoid:
+- Giant components.
+- Giant files.
+- Repeated business logic.
+- Unnecessary dependencies.
+- Unsafe type assertions.
+- Unchecked AI output.
+- Exposed secrets.
+- Hardcoded administrator accounts.
+- Fake functionality.
+- Dead buttons.
+- Mock data presented as live information.
+
+Create realistic development seed data, but make it obvious which data is demo data.
+
+## 21. IMPLEMENTATION PLAN
+
+Build in coherent phases.
+
+Phase 1 — Foundation:
+- Inspect the existing repository.
+- Establish the application architecture.
+- Create the design system.
+- Set up the database.
+- Implement authentication.
+- Create application navigation.
+- Build the landing page.
+
+Phase 2 — Dashboard and Core Editor:
+- Implement the dashboard.
+- Create the presentation document schema.
+- Build the rendering engine.
+- Build the interactive editor.
+- Implement slide and element operations.
+- Add autosave and version history.
+
+Phase 3 — Design Ecosystem:
+- Implement template management.
+- Implement design tokens.
+- Implement custom component registry.
+- Build the administrator panel.
+- Connect templates and components to the editor.
+
+Phase 4 — AI Generation:
+- Implement prompt processing.
+- Add file analysis.
+- Add reference recognition.
+- Build outline generation.
+- Build the layout engine.
+- Add quality scoring.
+- Generate editable presentations.
+
+Phase 5 — Import and Export:
+- Implement PowerPoint import.
+- Implement editable PPTX export.
+- Add PDF export.
+- Add image export.
+- Implement import/export reports.
+- Add supported Canva integration.
+
+Phase 6 — Platform Features:
+- Build profile pages.
+- Build sharing links.
+- Implement permissions.
+- Add gamification.
+- Add streaks.
+- Add activity history.
+
+Phase 7 — Responsive Design and Quality:
+- Thoroughly optimize mobile.
+- Add touch interactions.
+- Improve animations.
+- Run accessibility checks.
+- Run integration and end-to-end tests.
+- Test importing and exporting actual files.
+- Optimize application performance.
+- Fix visual inconsistencies.
+
+Do not stop after presenting an implementation plan. Continue implementing the application.
+
+If the task is too large for one implementation pass, prioritize a complete working vertical slice, then proceed through the phases. Do not replace unimplemented features with pretend buttons.
+
+## 22. ACCEPTANCE CRITERIA
+
+The application is not complete until these conditions are met:
+
+1. A new user can create an account and reach the dashboard.
+2. A user can create and save a presentation.
+3. A user can generate editable slides from a prompt.
+4. A user can upload reference materials and use their extracted information.
+5. A user can select, edit, reposition, resize, and delete slide elements.
+6. A user can use templates and custom components.
+7. An authorized administrator can manage templates, assets, fonts, and design tokens.
+8. An ordinary user cannot access restricted administration features.
+9. A user can share a presentation through a permission-controlled link.
+10. A user can export a valid PPTX with supported elements remaining editable.
+11. A user can import supported presentation files.
+12. A user can manage their profile and view progress.
+13. Streak and achievement calculations work consistently.
+14. The application works on desktop, tablets, and mobile phones.
+15. All visible controls have real, tested behavior.
+16. All critical operations handle errors and loading states.
+17. Private user documents and presentations are protected.
+18. The design quality is consistent throughout the product.
+
+## 23. HOW YOU SHOULD WORK
+
+Before editing code, inspect the entire existing project structure and understand the current implementation.
+
+Identify:
+- Existing frameworks.
+- Existing components.
+- Existing dependencies.
+- Existing database structure.
+- Existing functionality.
+- Missing functionality.
+- Architectural problems.
+
+Preserve working code unless there is a clear technical reason to change it.
+
+Make sensible implementation decisions without asking unnecessary questions.
+
+Use your judgment as a senior product engineer.
+
+Prioritize a real, polished product over a large collection of superficial features.
+
+For important technical decisions, explain the reason briefly in project documentation.
+
+Verify current third-party API documentation before implementing integrations. Do not invent API methods or assume unsupported formats.
+
+After every major implementation phase:
+- Run TypeScript checks.
+- Run linting.
+- Run relevant tests.
+- Fix errors.
+- Verify responsive behavior.
+- Check for regressions.
+
+Do not claim a feature works without testing it.
+
+If a feature depends on an external API, credentials, or service that is not configured, build the integration interface and clearly document the required configuration. Do not fake a successful connection.
+
+## FINAL PRODUCT STANDARD
+
+The result must feel like a serious, polished, original creative-software product.
+
+It should combine:
+- The flexibility of a professional slide editor.
+- The convenience of a modern creative platform.
+- The intelligence of multimodal AI.
+- The precision of a layout and composition engine.
+- The extensibility of a developer-controlled design system.
+- The convenience of excellent mobile design.
+
+Most importantly, the platform must belong to its own design ecosystem.
+
+My templates, components, design rules, tokens, and patterns must be first-class citizens in the system.
+
+The AI should work within that ecosystem, not ignore it and invent random designs.
+
+Do not optimize for generating the maximum number of slides as quickly as possible. Optimize for producing presentations that are structured, attractive, coherent, readable, editable, and genuinely useful.
+
+Build this as a long-term product foundation, not a disposable demo.

@@ -1,0 +1,257 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg-canvas: #F7F6F2;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #EFEDE7;
+  --bg-elevated: #FFFFFF;
+  --text-primary: #191B1F;
+  --text-secondary: #686D76;
+  --text-muted: #8E939C;
+  --border-hairline: #E6E4DE;
+  --border-strong: #D0CEC6;
+  --accent: #7D1935;
+  --accent-hover: #621128;
+  --accent-soft: rgba(125, 25, 53, 0.10);
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-editorial: "Fraunces", serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --radius-card: 10px;
+  --radius-control: 8px;
+  --shadow-card: 0 1px 2px rgba(25, 27, 31, 0.04);
+  --shadow-float: 0 10px 30px -8px rgba(25, 27, 31, 0.12);
+}
+
+.dark {
+  --bg-canvas: #0D0F13;
+  --bg-surface: #14171D;
+  --bg-subtle: #1B1F27;
+  --bg-elevated: #1E222B;
+  --text-primary: #F3F4F6;
+  --text-secondary: #A1A7B3;
+  --text-muted: #707784;
+  --border-hairline: #252A34;
+  --border-strong: #353B47;
+  --accent: #B83358;
+  --accent-hover: #CE466B;
+  --accent-soft: rgba(184, 51, 88, 0.18);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-float: 0 16px 40px -8px rgba(0, 0, 0, 0.45);
+}
+
+html {
+  font-family: var(--font-body);
+  scroll-behavior: smooth;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-editorial {
+  font-family: var(--font-editorial);
+}
+
+.font-mono-tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Custom subtle scrollbars for editor rails */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+
+@keyframes vellumFadeUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes vellumFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vellumSlideLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes vellumScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes vellumFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+@keyframes vellumPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes vellumSlideRight {
+  from {
+    opacity: 0;
+    transform: translate3d(-28px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes vellumBounce {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40% {
+    transform: translate3d(0, -14px, 0);
+  }
+  65% {
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+@keyframes vellumPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.045);
+    opacity: 0.92;
+  }
+}
+
+@keyframes vellumSpinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes vellumWiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-4deg);
+  }
+  75% {
+    transform: rotate(4deg);
+  }
+}
+
+.vellum-anim-fade-up {
+  animation: vellumFadeUp 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vellum-anim-fade-in {
+  animation: vellumFadeIn 0.6s ease-out both;
+}
+
+.vellum-anim-slide-left {
+  animation: vellumSlideLeft 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vellum-anim-slide-right {
+  animation: vellumSlideRight 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vellum-anim-scale-in {
+  animation: vellumScaleIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vellum-anim-pop {
+  animation: vellumPop 0.56s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vellum-anim-float {
+  animation: vellumFloat 6s ease-in-out infinite;
+}
+
+.vellum-anim-bounce {
+  animation: vellumBounce 2.4s ease-in-out infinite;
+}
+
+.vellum-anim-pulse {
+  animation: vellumPulse 2.6s ease-in-out infinite;
+}
+
+.vellum-anim-spin-slow {
+  animation: vellumSpinSlow 16s linear infinite;
+}
+
+.vellum-anim-wiggle {
+  animation: vellumWiggle 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

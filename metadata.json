@@ -1,0 +1,6 @@
+{
+  "name": "Vellum Studio",
+  "description": "Architectural presentation design platform with multimodal AI synthesis, deterministic layout composition, extensible design tokens, custom component registry, and editable PPTX export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

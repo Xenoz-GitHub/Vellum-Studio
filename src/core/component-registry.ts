@@ -1,0 +1,407 @@
+export interface ComponentPropertyField {
+  key: string;
+  label: string;
+  type: 'text' | 'textarea' | 'number' | 'color' | 'select' | 'list';
+  options?: string[];
+  description?: string;
+}
+
+export interface CustomComponentManifest {
+  componentKey: string;
+  name: string;
+  description: string;
+  category: string;
+  version: string;
+  minWidth: number;
+  minHeight: number;
+  defaultWidth: number;
+  defaultHeight: number;
+  propertySchema: ComponentPropertyField[];
+  defaultProps: Record<string, unknown>;
+  availability: {
+    manual: boolean;
+    template: boolean;
+    ai: boolean;
+    categories: string[];
+  };
+  enabled: boolean;
+}
+
+export const BUILTIN_CUSTOM_COMPONENTS: CustomComponentManifest[] = [
+  {
+    componentKey: 'editorial-kpi-card',
+    name: 'Architectural KPI Block',
+    description: 'High-contrast metric tile with tabular figures, directional delta, and contextual timeframe.',
+    category: 'Data & Metrics',
+    version: '1.0.0',
+    minWidth: 240,
+    minHeight: 150,
+    defaultWidth: 340,
+    defaultHeight: 190,
+    propertySchema: [
+      { key: 'label', label: 'Metric Label', type: 'text' },
+      { key: 'value', label: 'Primary Value', type: 'text' },
+      { key: 'delta', label: 'Delta / Context', type: 'text' },
+      { key: 'footnote', label: 'Source Footnote', type: 'text' },
+      { key: 'accentColor', label: 'Accent Color', type: 'color' },
+    ],
+    defaultProps: {
+      label: 'Qualified Pipeline Velocity',
+      value: '+142%',
+      delta: 'Year-over-year across enterprise accounts',
+      footnote: 'Q3 audited operations ledger',
+      accentColor: '#7D1935',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['Business', 'Reports', 'Data visualization', 'Pitch decks'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'milestone-timeline',
+    name: 'Milestone Roadmap Strip',
+    description: 'Structured 4-stage horizontal phase progression with crisp dates and deliverables.',
+    category: 'Diagrams & Flows',
+    version: '1.0.0',
+    minWidth: 520,
+    minHeight: 170,
+    defaultWidth: 1080,
+    defaultHeight: 230,
+    propertySchema: [
+      { key: 'heading', label: 'Track Heading', type: 'text' },
+      { key: 'stages', label: 'Stages (Phase | Date | Summary per line)', type: 'list' },
+      { key: 'accentColor', label: 'Accent Color', type: 'color' },
+    ],
+    defaultProps: {
+      heading: 'Delivery Schedule',
+      stages: [
+        '01. Discovery | Jan–Feb | Stakeholder interviews & baseline audit',
+        '02. Architecture | Mar–Apr | Token system & schema calibration',
+        '03. Pilot Rollout | May–Jun | Controlled cohort deployment',
+        '04. General Release | Jul+ | Organization-wide enablement',
+      ],
+      accentColor: '#7D1935',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['Business', 'Pitch decks', 'Education', 'Research'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'comparison-matrix',
+    name: 'Two-Column Comparison',
+    description: 'Structured editorial comparison panel contrasting two strategies, options, or states.',
+    category: 'Editorial Layouts',
+    version: '1.0.0',
+    minWidth: 480,
+    minHeight: 240,
+    defaultWidth: 1080,
+    defaultHeight: 360,
+    propertySchema: [
+      { key: 'leftTitle', label: 'Left Column Title', type: 'text' },
+      { key: 'leftItems', label: 'Left Points', type: 'list' },
+      { key: 'rightTitle', label: 'Right Column Title', type: 'text' },
+      { key: 'rightItems', label: 'Right Points', type: 'list' },
+      { key: 'accentColor', label: 'Highlight Color', type: 'color' },
+    ],
+    defaultProps: {
+      leftTitle: 'Legacy Ad-Hoc Decks',
+      leftItems: [
+        'Inconsistent spacing and unaligned frames',
+        'Flattened static exports that resist editing',
+        'Manual re-keying of source research',
+      ],
+      rightTitle: 'Token-Governed System',
+      rightItems: [
+        'Deterministic 12-column Swiss grid alignment',
+        'Editable native text, charts, and PPTX objects',
+        'Full traceability back to source documents',
+      ],
+      accentColor: '#7D1935',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['Business', 'Marketing', 'Pitch decks', 'Minimalist'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'quote-pullout',
+    name: 'Editorial Pull-Quote',
+    description: 'Serif typographic quotation frame with speaker attribution and contextual role.',
+    category: 'Typography',
+    version: '1.0.0',
+    minWidth: 380,
+    minHeight: 180,
+    defaultWidth: 880,
+    defaultHeight: 280,
+    propertySchema: [
+      { key: 'quote', label: 'Quotation Text', type: 'textarea' },
+      { key: 'author', label: 'Speaker / Source', type: 'text' },
+      { key: 'role', label: 'Title / Publication', type: 'text' },
+      { key: 'accentColor', label: 'Accent Color', type: 'color' },
+    ],
+    defaultProps: {
+      quote: 'Clarity in visual hierarchy is not decoration; it is the fastest route to shared conviction.',
+      author: 'Elena Lindqvist',
+      role: 'Principal Design Director, Nordisk Studio',
+      accentColor: '#7D1935',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['Editorial', 'Portfolio', 'Research', 'Creative'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'process-chevron-flow',
+    name: 'Sequential Process Grid',
+    description: 'Numbered 3-step analytical process module pairing action title with concrete output.',
+    category: 'Diagrams & Flows',
+    version: '1.0.0',
+    minWidth: 500,
+    minHeight: 180,
+    defaultWidth: 1080,
+    defaultHeight: 250,
+    propertySchema: [
+      { key: 'steps', label: 'Steps (Title | Outcome per line)', type: 'list' },
+      { key: 'accentColor', label: 'Accent Color', type: 'color' },
+    ],
+    defaultProps: {
+      steps: [
+        '01. Ingest Sources | Extract verified facts, tables, and visual palettes from uploaded briefs.',
+        '02. Compose Grid | Map semantic blocks onto deterministic layout patterns with strict contrast checks.',
+        '03. Refine & Export | Adjust every layer in the studio canvas and export editable PPTX files.',
+      ],
+      accentColor: '#7D1935',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['Business', 'Education', 'Reports', 'Marketing'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'source-citation-bar',
+    name: 'Source Traceability Bar',
+    description: 'Compact metadata band citing the exact document or dataset backing slide claims.',
+    category: 'Research & Citations',
+    version: '1.0.0',
+    minWidth: 360,
+    minHeight: 44,
+    defaultWidth: 1120,
+    defaultHeight: 52,
+    propertySchema: [
+      { key: 'sourceName', label: 'Source Title', type: 'text' },
+      { key: 'section', label: 'Page / Section', type: 'text' },
+      { key: 'verifiedDate', label: 'Date', type: 'text' },
+    ],
+    defaultProps: {
+      sourceName: 'Annual Grid Operations Report',
+      section: 'Section 4.2, Table 7',
+      verifiedDate: 'November 2026',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['Research', 'Reports', 'Education', 'Data visualization'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'retro-tv-frame',
+    name: 'Retro CRT Television Frame',
+    description: 'Editable Y2K silver-beige CRT television housing with rabbit-ear antennas, rotary dials, and screen bezel.',
+    category: 'PubMat & Collage',
+    version: '1.0.0',
+    minWidth: 280,
+    minHeight: 240,
+    defaultWidth: 660,
+    defaultHeight: 540,
+    propertySchema: [
+      { key: 'brandLabel', label: 'Chassis Badge', type: 'text' },
+      { key: 'casingColor', label: 'Outer Casing Color', type: 'color' },
+      { key: 'bezelColor', label: 'Inner Bezel Color', type: 'color' },
+      { key: 'accentColor', label: 'Dial & LED Accent', type: 'color' },
+    ],
+    defaultProps: {
+      brandLabel: 'VELLUM-TV',
+      casingColor: '#DCD9D0',
+      bezelColor: '#A9B0B9',
+      accentColor: '#3B6FD8',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['PubMat', 'Creative', 'Portfolio', 'Marketing'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'birthday-flip-calendar',
+    name: 'Birthday Flip Calendar',
+    description: 'Ring-bound Y2K desk calendar sticker with editable month, day, subtitle, and colorway.',
+    category: 'PubMat & Collage',
+    version: '1.0.0',
+    minWidth: 120,
+    minHeight: 120,
+    defaultWidth: 184,
+    defaultHeight: 184,
+    propertySchema: [
+      { key: 'month', label: 'Month Label', type: 'text' },
+      { key: 'day', label: 'Day Number', type: 'text' },
+      { key: 'yearNote', label: 'Bottom Tag', type: 'text' },
+      { key: 'headerColor', label: 'Header Band Color', type: 'color' },
+      { key: 'paperColor', label: 'Page Color', type: 'color' },
+      { key: 'accentColor', label: 'Number Color', type: 'color' },
+    ],
+    defaultProps: {
+      month: 'JAN',
+      day: '05',
+      yearNote: 'BIRTHDAY',
+      headerColor: '#3B6FD8',
+      paperColor: '#FFFFFF',
+      accentColor: '#2957B8',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['PubMat', 'Creative', 'Marketing'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'y2k-collage-sticker',
+    name: 'Y2K PubMat Sticker',
+    description: 'Editable vector collage sticker (vinyl disc, camcorder, rotary phone, denim star, chrome star, glass heart, bubble).',
+    category: 'PubMat & Collage',
+    version: '1.0.0',
+    minWidth: 48,
+    minHeight: 48,
+    defaultWidth: 180,
+    defaultHeight: 180,
+    propertySchema: [
+      {
+        key: 'stickerKind',
+        label: 'Sticker Variant',
+        type: 'select',
+        options: [
+          'vinyl-disc',
+          'camcorder',
+          'rotary-phone',
+          'phone-handset',
+          'denim-star',
+          'chrome-star',
+          'glass-heart',
+          'soap-bubble',
+          'sparkle-burst',
+          'meadow-horizon',
+        ],
+      },
+      { key: 'label', label: 'Sticker Label (e.g. Vinyl)', type: 'text' },
+      { key: 'tintColor', label: 'Primary Tint Color', type: 'color' },
+      { key: 'accentColor', label: 'Highlight Color', type: 'color' },
+    ],
+    defaultProps: {
+      stickerKind: 'vinyl-disc',
+      label: 'BDAY MIX',
+      tintColor: '#254C9E',
+      accentColor: '#78B7FF',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['PubMat', 'Creative', 'Portfolio', 'Marketing'],
+    },
+    enabled: true,
+  },
+  {
+    componentKey: 'cutout-illustration',
+    name: 'Customizable Cutout Element',
+    description: 'Editable high-detail vector cutout illustration (balloons, cameras, chains, flowers, CDs, tapes, clouds, trees, trumpet, bubbles, golden koi fish, like zone, hearts, banners, ribbons) with live colorway controls.',
+    category: 'PubMat & Cutouts',
+    version: '1.0.0',
+    minWidth: 48,
+    minHeight: 48,
+    defaultWidth: 190,
+    defaultHeight: 190,
+    propertySchema: [
+      {
+        key: 'stickerKind',
+        label: 'Cutout Art',
+        type: 'select',
+        options: [
+          'balloon',
+          'balloon-cluster',
+          'retro-camera',
+          'cd-disc',
+          'cassette-tape',
+          'gold-chain',
+          'brass-trumpet',
+          'golden-fish',
+          'flower-hibiscus',
+          'flower-daisy',
+          'flower-rose',
+          'fluffy-cloud',
+          'botanical-tree',
+          'bubble-cluster',
+          'butterfly-aero',
+          'like-zone-badge',
+          'glossy-heart',
+          'ribbon-bow',
+          'scroll-banner',
+          'prize-ribbon',
+          'ticket-stub',
+          'chrome-crown',
+          'lightning-bolt',
+          'sparkle-cluster',
+          'rainbow-arc',
+          'confetti-pop',
+        ],
+      },
+      { key: 'label', label: 'Label / Badge Text', type: 'text' },
+      { key: 'primaryColor', label: 'Primary Color', type: 'color' },
+      { key: 'secondaryColor', label: 'Secondary Color', type: 'color' },
+      { key: 'accentColor', label: 'Highlight / Text Color', type: 'color' },
+      { key: 'outlineColor', label: 'Outline / Shadow Color', type: 'color' },
+    ],
+    defaultProps: {
+      stickerKind: 'balloon',
+      label: 'PARTY',
+      primaryColor: '#7D1935',
+      secondaryColor: '#F48FB1',
+      accentColor: '#FFFFFF',
+      outlineColor: '#4A0D1E',
+    },
+    availability: {
+      manual: true,
+      template: true,
+      ai: true,
+      categories: ['PubMat', 'Creative', 'Portfolio', 'Marketing', 'Education'],
+    },
+    enabled: true,
+  },
+];
+
+export function getComponentManifest(
+  key: string,
+  registry: CustomComponentManifest[] = BUILTIN_CUSTOM_COMPONENTS
+): CustomComponentManifest | undefined {
+  return registry.find((c) => c.componentKey === key);
+}
