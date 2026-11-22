@@ -132,6 +132,9 @@ export const TextElementSchema = BaseElementSchema.extend({
   textEffect: z.enum(['none', 'sticker-outline', 'ransom-cutout']).default('none').optional(),
   outlineColor: z.string().optional(),
   outlineWidth: z.number().min(0).max(24).optional(),
+  stroke: z.string().optional(),
+  strokeWidth: z.number().min(0).max(10).default(0).optional(),
+  strokeColor: z.string().optional(),
   borderRadius: z.number().default(0),
   padding: z.number().default(4),
   semanticRole: z.enum(['title', 'subtitle', 'kicker', 'body', 'caption', 'quote', 'metric']).optional(),
@@ -162,6 +165,10 @@ export const ShapeElementSchema = BaseElementSchema.extend({
   gradient: z.string().optional(),
   stroke: z.string().default('#D0CEC6'),
   strokeWidth: z.number().min(0).max(20).default(0),
+  strokeColor: z.string().optional(),
+  strokeDashArray: z.string().optional(),
+  strokeLineCap: z.enum(['butt', 'round', 'square']).default('butt').optional(),
+  strokeLineJoin: z.enum(['miter', 'round', 'bevel']).default('miter').optional(),
   borderRadius: z.number().min(0).max(9999).default(8),
   blur: z.number().min(0).max(160).default(0).optional(),
   blendMode: z.enum(['normal', 'multiply', 'screen', 'overlay']).default('normal').optional(),
@@ -175,6 +182,9 @@ export const ImageElementSchema = BaseElementSchema.extend({
   alt: z.string().default('Slide visual'),
   objectFit: z.enum(['cover', 'contain']).default('cover'),
   borderRadius: z.number().min(0).max(9999).default(8),
+  stroke: z.string().optional(),
+  strokeWidth: z.number().min(0).max(20).default(0).optional(),
+  strokeColor: z.string().optional(),
   cropX: z.number().min(0).max(100).optional(),
   cropY: z.number().min(0).max(100).optional(),
   cropZoom: z.number().min(1).max(4).optional(),
@@ -185,6 +195,9 @@ export const ImageElementSchema = BaseElementSchema.extend({
   blur: z.number().min(0).max(20).optional(),
   grayscale: z.number().min(0).max(100).optional(),
   sepia: z.number().min(0).max(100).optional(),
+  vignette: z.number().min(0).max(100).default(0).optional(),
+  mask: z.enum(['none', 'circle', 'rounded', 'star', 'hexagon', 'custom']).default('none').optional(),
+  maskPath: z.string().optional(),
   caption: z.string().optional(),
 });
 
@@ -275,6 +288,10 @@ export const SlideBackgroundSchema = z.object({
   patternOpacity: z.number().min(0).max(1).default(0.18).optional(),
   patternColor: z.string().optional(),
   overlay: z.string().optional(),
+  vignette: z.number().min(0).max(100).default(0).optional(),
+  vignetteColor: z.string().default('#000000').optional(),
+  mask: z.enum(['none', 'radial', 'linear', 'custom']).default('none').optional(),
+  maskOpacity: z.number().min(0).max(1).default(1).optional(),
 });
 
 export const SlideSchema = z.object({

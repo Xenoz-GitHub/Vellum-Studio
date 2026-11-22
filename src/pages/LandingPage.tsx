@@ -1,13 +1,33 @@
-import { useState } from 'react';
-import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, FileOutput, Layers, LayoutGrid, Sliders } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react';
 import { useAppStore } from '../state/useAppStore';
 import { getSeedTemplates, SEED_IMAGE_PATHS } from '../core/seed-data';
 import { SlideCanvas } from '../components/renderer/SlideCanvas';
 import { BUILTIN_CUSTOM_COMPONENTS } from '../core/component-registry';
 import { CustomComponentView } from '../components/renderer/CustomComponentView';
 import { DESIGN_TOKEN_PRESETS } from '../core/seed-data';
+import { 
+  AIBrainIllustration, 
+  DesignToolsIllustration, 
+  CollaborationIllustration, 
+  ExportIllustration,
+  FastSpeedIllustration,
+  TemplateGalleryIllustration 
+} from '../components/illustrations/Y2KIllustrations';
+import {
+  TemplateSelectionIcon,
+  CustomizeIcon,
+  ExportIconStep
+} from '../components/illustrations/AnimatedStepIcons';
 
 const SAMPLE_TEMPLATES = getSeedTemplates();
+
+// Get specific templates by category for hero showcase
+const HERO_TEMPLATES = [
+  SAMPLE_TEMPLATES.find(t => t.category === 'PubMat') || SAMPLE_TEMPLATES[0],
+  SAMPLE_TEMPLATES.find(t => t.category === 'Portfolio') || SAMPLE_TEMPLATES[1],
+  SAMPLE_TEMPLATES.find(t => t.category === 'Reports') || SAMPLE_TEMPLATES[2],
+];
 
 const FAQS = [
   {
@@ -33,8 +53,43 @@ export function LandingPage() {
   const [activeDeckIdx, setActiveDeckIdx] = useState(0);
   const [activeSlideIdx, setActiveSlideIdx] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const previewTemplate = SAMPLE_TEMPLATES[activeDeckIdx] || SAMPLE_TEMPLATES[0];
+  const heroRef = useRef<HTMLDivElement>(null);
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const stepsRef = useRef<HTMLDivElement>(null);
+  const componentsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('.scroll-animate').forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const previewTemplate = HERO_TEMPLATES[activeDeckIdx] || HERO_TEMPLATES[0];
   const previewDoc = previewTemplate.document;
   const previewSlide = previewDoc.slides[activeSlideIdx] || previewDoc.slides[0];
 
@@ -46,70 +101,204 @@ export function LandingPage() {
     }
   };
 
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)]">
-      {/* Hero Section */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 lg:pt-16 lg:pb-24">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          <div className="lg:col-span-5 space-y-6">
-            <div className="text-xs font-mono-tabular uppercase tracking-wider text-[var(--accent)]">
-              Architectural Presentation Engine
-            </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[54px] font-bold leading-[1.08] tracking-tight text-balance">
-              Presentations composed with editorial discipline, not random templates.
-            </h1>
-            <p className="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed max-w-xl">
-              Synthesize briefs, PDFs, reference images, and structured data into multi-slide decks governed by your own design tokens, custom component registry, and editable PPTX export.
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/30 text-slate-900 relative overflow-x-hidden">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-200/40 to-pink-200/40 rounded-full blur-3xl animate-float" />
+        <div className="absolute top-1/3 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-blue-200/40 to-cyan-200/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s', animationDuration: '8s' }} />
+        <div className="absolute bottom-40 right-1/4 w-80 h-80 bg-gradient-to-tl from-amber-200/40 to-orange-200/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s', animationDuration: '10s' }} />
+        
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      </div>
 
-            {authError && (
-              <div className="p-3 rounded-lg border border-red-300 bg-red-50 text-red-800 text-sm">
-                {authError}
+      {/* Navigation Bar */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-lg shadow-lg' : 'bg-transparent'}`}>
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo */}
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center border-3 border-white shadow-lg">
+                <span className="text-white text-xl font-black">V</span>
               </div>
-            )}
+              <span className="text-2xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Vellum Studio
+              </span>
+            </div>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleOpenWorkspace}
-                className="inline-flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-lg bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors whitespace-nowrap"
-              >
-                {profile || isDemo ? 'Open Studio Workspace' : 'Try Interactive Workspace'}
-                <ArrowRight className="w-4 h-4" />
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-8">
+              <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-slate-700 font-bold hover:text-purple-600 transition-colors">
+                Home
               </button>
+              <button onClick={() => scrollToSection(featuresRef)} className="text-slate-700 font-bold hover:text-purple-600 transition-colors">
+                Features
+              </button>
+              <button onClick={() => scrollToSection(stepsRef)} className="text-slate-700 font-bold hover:text-purple-600 transition-colors">
+                How It Works
+              </button>
+              <button onClick={() => scrollToSection(componentsRef)} className="text-slate-700 font-bold hover:text-purple-600 transition-colors">
+                FAQ
+              </button>
+              <button onClick={() => navigate({ page: 'templates' })} className="text-slate-700 font-bold hover:text-purple-600 transition-colors">
+                Pricing
+              </button>
+            </div>
 
-              {!profile ? (
-                <button
-                  type="button"
-                  onClick={signInWithGoogle}
-                  className="inline-flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] text-sm font-semibold hover:bg-[var(--bg-subtle)] transition-colors whitespace-nowrap"
-                >
-                  Sign In with Google
-                </button>
+            {/* Desktop CTA */}
+            <div className="hidden md:flex items-center gap-4">
+              {!profile && !isDemo ? (
+                <>
+                  <button
+                    onClick={signInWithGoogle}
+                    className="px-6 py-3 text-slate-700 font-bold hover:text-purple-600 transition-colors"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={handleOpenWorkspace}
+                    className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+                  >
+                    Get Started
+                  </button>
+                </>
               ) : (
                 <button
-                  type="button"
-                  onClick={() => navigate({ page: 'templates' })}
-                  className="inline-flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] text-sm font-semibold hover:bg-[var(--bg-subtle)] transition-colors whitespace-nowrap"
+                  onClick={handleOpenWorkspace}
+                  className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
                 >
-                  Browse Templates
+                  Open Workspace
                 </button>
               )}
             </div>
 
-            <div className="pt-4 border-t border-[var(--border-hairline)] grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-[var(--text-secondary)]">
-              <span>Editable PPTX & PDF export</span>
-              <span>Multimodal PDF & image briefs</span>
-              <span>Custom component registry</span>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden w-10 h-10 flex items-center justify-center text-slate-700"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-6 border-t border-slate-200 bg-white/95 backdrop-blur-lg">
+              <div className="flex flex-col gap-4">
+                <button onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }} className="text-slate-700 font-bold hover:text-purple-600 transition-colors text-left">
+                  Home
+                </button>
+                <button onClick={() => scrollToSection(featuresRef)} className="text-slate-700 font-bold hover:text-purple-600 transition-colors text-left">
+                  Features
+                </button>
+                <button onClick={() => scrollToSection(stepsRef)} className="text-slate-700 font-bold hover:text-purple-600 transition-colors text-left">
+                  How It Works
+                </button>
+                <button onClick={() => scrollToSection(componentsRef)} className="text-slate-700 font-bold hover:text-purple-600 transition-colors text-left">
+                  FAQ
+                </button>
+                <button onClick={() => { navigate({ page: 'templates' }); setMobileMenuOpen(false); }} className="text-slate-700 font-bold hover:text-purple-600 transition-colors text-left">
+                  Pricing
+                </button>
+                <div className="pt-4 border-t border-slate-200 flex flex-col gap-3">
+                  {!profile && !isDemo ? (
+                    <>
+                      <button onClick={signInWithGoogle} className="px-6 py-3 text-slate-700 font-bold border-2 border-slate-300 rounded-full hover:border-purple-600 transition-colors">
+                        Sign In
+                      </button>
+                      <button onClick={handleOpenWorkspace} className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold">
+                        Get Started
+                      </button>
+                    </>
+                  ) : (
+                    <button onClick={handleOpenWorkspace} className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold">
+                      Open Workspace
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+      
+      {/* Hero Section */}
+      <section ref={heroRef} className="relative max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12 pt-32 pb-20 lg:pt-40 lg:pb-32">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="space-y-8 scroll-animate opacity-0">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.1] tracking-tight">
+              <span className="block bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                Create Beautiful
+              </span>
+              <span className="block text-slate-900 mt-2">
+                Presentations
+              </span>
+            </h1>
+            <p className="text-xl sm:text-2xl text-slate-600 leading-relaxed max-w-xl font-medium">
+              AI-powered design tools that help you create stunning presentations in minutes. No design skills required.
+            </p>
+
+            {authError && (
+              <div className="p-4 rounded-2xl border-2 border-red-300 bg-red-50 text-red-700 text-sm font-semibold">
+                {authError}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-4 pt-4">
+              <button
+                type="button"
+                onClick={handleOpenWorkspace}
+                className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+              >
+                <span>{profile || isDemo ? 'Open Workspace' : 'Get Started Free'}</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+
+              {!profile && !isDemo && (
+                <button
+                  type="button"
+                  onClick={enterDemoWorkspace}
+                  className="inline-flex items-center gap-3 px-8 py-4 rounded-full border-2 border-slate-300 bg-white text-slate-700 text-lg font-bold hover:border-purple-600 hover:text-purple-600 transition-all duration-200"
+                >
+                  <span>Try Demo</span>
+                </button>
+              )}
+            </div>
+
+            <div className="pt-6 flex flex-wrap items-center gap-6 text-slate-600">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="font-semibold">No Credit Card</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="font-semibold">PowerPoint Export</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="font-semibold">AI-Powered</span>
+              </div>
             </div>
           </div>
 
-          {/* Interactive Live Slide Previewer */}
-          <div className="lg:col-span-7">
-            <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface)] p-4 sm:p-6 shadow-[var(--shadow-card)]">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-[var(--border-hairline)]">
-                <div className="flex items-center gap-1 p-1 rounded-lg bg-[var(--bg-subtle)] overflow-x-auto max-w-full">
-                  {SAMPLE_TEMPLATES.slice(0, 3).map((tpl, idx) => (
+          {/* Hero Preview Card */}
+          <div className="lg:order-last scroll-animate opacity-0" style={{ animationDelay: '200ms' }}>
+            <div className="rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-200">
+                <div className="flex items-center gap-2">
+                  {HERO_TEMPLATES.map((tpl, idx) => (
                     <button
                       key={tpl.id}
                       type="button"
@@ -117,285 +306,440 @@ export function LandingPage() {
                         setActiveDeckIdx(idx);
                         setActiveSlideIdx(0);
                       }}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
+                      className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${
                         activeDeckIdx === idx
-                          ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs'
-                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
                       {tpl.category}
                     </button>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-2 text-xs font-mono-tabular text-[var(--text-secondary)]">
-                  <span>
-                    Slide {activeSlideIdx + 1} / {previewDoc.slides.length}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Previous preview slide"
-                    onClick={() => setActiveSlideIdx((i) => Math.max(0, i - 1))}
-                    disabled={activeSlideIdx === 0}
-                    className="w-8 h-8 inline-flex items-center justify-center rounded-md border border-[var(--border-hairline)] disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Next preview slide"
-                    onClick={() => setActiveSlideIdx((i) => Math.min(previewDoc.slides.length - 1, i + 1))}
-                    disabled={activeSlideIdx >= previewDoc.slides.length - 1}
-                    className="w-8 h-8 inline-flex items-center justify-center rounded-md border border-[var(--border-hairline)] disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
 
-              <div className="w-full overflow-hidden flex items-center justify-center bg-[var(--bg-subtle)] rounded-lg p-3 sm:p-5 min-h-[230px] sm:min-h-[352px] xl:min-h-[444px]">
-                <div className="hidden xl:block">
+              <div className="w-full overflow-hidden flex items-center justify-center bg-slate-50 rounded-2xl p-4">
+                <div className="w-full" style={{ aspectRatio: `${previewDoc.width}/${previewDoc.height}` }}>
                   <SlideCanvas
                     slide={previewSlide}
                     tokens={previewDoc.tokens}
                     width={previewDoc.width}
                     height={previewDoc.height}
-                    scale={Number(Math.min(716 / previewDoc.width, 404 / previewDoc.height).toFixed(3))}
-                    animated
-                    animationKey={activeDeckIdx * 100 + activeSlideIdx}
-                  />
-                </div>
-                <div className="hidden sm:block xl:hidden">
-                  <SlideCanvas
-                    slide={previewSlide}
-                    tokens={previewDoc.tokens}
-                    width={previewDoc.width}
-                    height={previewDoc.height}
-                    scale={Number(Math.min(560 / previewDoc.width, 316 / previewDoc.height).toFixed(3))}
-                    animated
-                    animationKey={activeDeckIdx * 100 + activeSlideIdx}
-                  />
-                </div>
-                <div className="sm:hidden">
-                  <SlideCanvas
-                    slide={previewSlide}
-                    tokens={previewDoc.tokens}
-                    width={previewDoc.width}
-                    height={previewDoc.height}
-                    scale={Number(Math.min(300 / previewDoc.width, 196 / previewDoc.height).toFixed(3))}
+                    scale={1}
                     animated
                     animationKey={activeDeckIdx * 100 + activeSlideIdx}
                   />
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between text-xs text-[var(--text-secondary)]">
-                <span className="truncate font-medium text-[var(--text-primary)]">{previewTemplate.name}</span>
-                <span className="font-mono-tabular shrink-0 ml-3">{previewDoc.tokens.name}</span>
+              <div className="mt-4 flex items-center justify-between">
+                <span className="truncate font-bold text-slate-800">{previewTemplate.name}</span>
+                <span className="text-xs font-semibold text-purple-700 bg-purple-100 px-3 py-1 rounded-full shrink-0 ml-3">
+                  {previewDoc.tokens.name}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Studio Visual Proof Strip */}
-      <section className="border-y border-[var(--border-hairline)] bg-[var(--bg-surface)]">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid lg:grid-cols-12 gap-10 items-stretch">
-            <div className="lg:col-span-5 rounded-xl overflow-hidden border border-[var(--border-hairline)]">
-              <img
-                src={SEED_IMAGE_PATHS.heroStudio}
-                alt="Architectural typography sheets and grid scales in a sunlit studio"
-                referrerPolicy="no-referrer"
-                className="w-full h-full min-h-[260px] object-cover"
-              />
+      {/* Y2K Features Grid with Interactive Illustrations */}
+      <section className="relative max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12 py-20">
+        <div className="text-center mb-16">
+          <div className="inline-block mb-4 px-6 py-2 bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 rounded-full border-4 border-slate-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] transform -rotate-1">
+            <span className="text-sm font-black text-slate-800">✨ WAY COOLER THAN CANVA ✨</span>
+          </div>
+          <h2 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6" style={{ textShadow: '4px 4px 0px rgba(139,92,246,0.2)' }}>
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Super Cool Features
+            </span>
+          </h2>
+          <p className="text-2xl sm:text-3xl font-black text-slate-700 max-w-3xl mx-auto">
+            Everything you need in one <span className="bg-yellow-200 px-3 py-1 rounded-2xl border-3 border-yellow-400 inline-block transform rotate-1">AWESOME</span> place!
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* AI-Powered */}
+          <div className="group relative p-8 pt-12 rounded-[40px] bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 border-5 border-slate-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200 overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full opacity-30 blur-2xl" />
+            <div className="relative">
+              <div className="w-28 h-28 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <AIBrainIllustration className="w-full h-full drop-shadow-lg" />
+              </div>
+              <h3 className="text-3xl font-black mb-4 text-slate-800 text-center">AI-Powered Magic</h3>
+              <p className="text-slate-700 leading-relaxed font-bold text-center text-lg">
+                Our smart AI creates <span className="bg-purple-200 px-2 py-0.5 rounded-lg">perfect layouts</span> automatically. It's like having a designer in your pocket!
+              </p>
             </div>
-            <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
-              <div>
-                <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-3 text-balance">
-                  A multi-stage synthesis pipeline built around your design rules.
-                </h2>
-                <p className="text-[var(--text-secondary)] leading-relaxed">
-                  Instead of prompting an LLM to guess arbitrary pixel coordinates, Vellum separates semantic planning from deterministic Swiss grid layout, WCAG contrast enforcement, and custom component mapping.
-                </p>
+          </div>
+
+          {/* Design Tools */}
+          <div className="group relative p-8 pt-12 rounded-[40px] bg-gradient-to-br from-cyan-100 via-blue-50 to-purple-100 border-5 border-slate-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200 overflow-hidden">
+            <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-cyan-200 to-blue-200 rounded-full opacity-30 blur-2xl" />
+            <div className="relative">
+              <div className="w-28 h-28 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <DesignToolsIllustration className="w-full h-full drop-shadow-lg" />
               </div>
-              <div className="grid sm:grid-cols-2 gap-6 pt-2">
-                <div className="border-t border-[var(--border-hairline)] pt-4">
-                  <div className="text-xs font-mono-tabular text-[var(--accent)] mb-1">01. Source Ingestion</div>
-                  <div className="font-semibold mb-1">Multimodal Briefs & References</div>
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    Extract structured points from PDFs, DOCX documents, PPTX decks, and visual direction screenshots while keeping source citations traceable.
-                  </p>
-                </div>
-                <div className="border-t border-[var(--border-hairline)] pt-4">
-                  <div className="text-xs font-mono-tabular text-[var(--accent)] mb-1">02. Editable Outline</div>
-                  <div className="font-semibold mb-1">Narrative Before Pixels</div>
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    Review, reorder, and refine every slide heading, semantic role, and layout pattern before the composition engine renders the deck.
-                  </p>
-                </div>
-                <div className="border-t border-[var(--border-hairline)] pt-4">
-                  <div className="text-xs font-mono-tabular text-[var(--accent)] mb-1">03. Token Governance</div>
-                  <div className="font-semibold mb-1">Deterministic Grid & Contrast</div>
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    Bound checks, overlap detection, and contrast ratios run automatically across every element against your selected token set.
-                  </p>
-                </div>
-                <div className="border-t border-[var(--border-hairline)] pt-4">
-                  <div className="text-xs font-mono-tabular text-[var(--accent)] mb-1">04. Native Portability</div>
-                  <div className="font-semibold mb-1">Editable PowerPoint Output</div>
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    Export directly to `.pptx` with native text boxes, charts, tables, and speaker notes, or share permission-controlled links.
-                  </p>
-                </div>
+              <h3 className="text-3xl font-black mb-4 text-slate-800 text-center">Pro Design Tools</h3>
+              <p className="text-slate-700 leading-relaxed font-bold text-center text-lg">
+                Drag, drop, and <span className="bg-blue-200 px-2 py-0.5 rounded-lg">customize</span> everything! Change colors, fonts, and layouts with zero design skills needed.
+              </p>
+            </div>
+          </div>
+
+          {/* Export Options */}
+          <div className="group relative p-8 pt-12 rounded-[40px] bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-100 border-5 border-slate-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200 overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-200 to-amber-200 rounded-full opacity-30 blur-2xl" />
+            <div className="relative">
+              <div className="w-28 h-28 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <ExportIllustration className="w-full h-full drop-shadow-lg" />
               </div>
+              <h3 className="text-3xl font-black mb-4 text-slate-800 text-center">Export Anywhere</h3>
+              <p className="text-slate-700 leading-relaxed font-bold text-center text-lg">
+                Download as <span className="bg-red-200 px-2 py-0.5 rounded-lg">PDF</span>, <span className="bg-orange-200 px-2 py-0.5 rounded-lg">PowerPoint</span>, or <span className="bg-green-200 px-2 py-0.5 rounded-lg">PNG</span>. Works with everything!
+              </p>
+            </div>
+          </div>
+
+          {/* Lightning Fast */}
+          <div className="group relative p-8 pt-12 rounded-[40px] bg-gradient-to-br from-pink-100 via-rose-50 to-red-100 border-5 border-slate-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200 overflow-hidden">
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-200 to-rose-200 rounded-full opacity-30 blur-2xl" />
+            <div className="relative">
+              <div className="w-28 h-28 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FastSpeedIllustration className="w-full h-full drop-shadow-lg" />
+              </div>
+              <h3 className="text-3xl font-black mb-4 text-slate-800 text-center">Lightning Fast</h3>
+              <p className="text-slate-700 leading-relaxed font-bold text-center text-lg">
+                Create presentations in <span className="bg-pink-200 px-2 py-0.5 rounded-lg">minutes</span>, not hours! Our AI speeds up your workflow like crazy.
+              </p>
+            </div>
+          </div>
+
+          {/* Team Collaboration */}
+          <div className="group relative p-8 pt-12 rounded-[40px] bg-gradient-to-br from-green-100 via-emerald-50 to-teal-100 border-5 border-slate-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200 overflow-hidden">
+            <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-br from-green-200 to-emerald-200 rounded-full opacity-30 blur-2xl" />
+            <div className="relative">
+              <div className="w-28 h-28 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <CollaborationIllustration className="w-full h-full drop-shadow-lg" />
+              </div>
+              <h3 className="text-3xl font-black mb-4 text-slate-800 text-center">Team Sharing</h3>
+              <p className="text-slate-700 leading-relaxed font-bold text-center text-lg">
+                <span className="bg-green-200 px-2 py-0.5 rounded-lg">Collaborate</span> with your team in real-time. Everyone stays on the same page. So smooth!
+              </p>
+            </div>
+          </div>
+
+          {/* Template Gallery */}
+          <div className="group relative p-8 pt-12 rounded-[40px] bg-gradient-to-br from-indigo-100 via-violet-50 to-purple-100 border-5 border-slate-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200 overflow-hidden">
+            <div className="absolute top-0 left-1/2 w-32 h-32 bg-gradient-to-br from-indigo-200 to-violet-200 rounded-full opacity-30 blur-2xl" />
+            <div className="relative">
+              <div className="w-28 h-28 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <TemplateGalleryIllustration className="w-full h-full drop-shadow-lg" />
+              </div>
+              <h3 className="text-3xl font-black mb-4 text-slate-800 text-center">Tons of Templates</h3>
+              <p className="text-slate-700 leading-relaxed font-bold text-center text-lg">
+                Pick from <span className="bg-indigo-200 px-2 py-0.5 rounded-lg">hundreds</span> of pro templates. Business, creative, fun - we've got it all!
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Extensible Custom Component System */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-          <div>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-              Extensible Custom Component Ecosystem
+      {/* How It Works Section with Animated Icons */}
+      <section ref={stepsRef} className="relative bg-gradient-to-br from-slate-50 via-purple-50/20 to-blue-50/20 py-20">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="text-center mb-16 scroll-animate opacity-0">
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                How It Works
+              </span>
             </h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl">
-              Declarative, versioned component manifests connect the Admin Console, Editor Inspector, and AI Layout Engine without rewriting core code.
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Create professional presentations in three simple steps
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleOpenWorkspace}
-            className="text-sm font-semibold text-[var(--accent)] hover:underline whitespace-nowrap self-start md:self-auto"
-          >
-            Inspect in Studio Editor
-          </button>
-        </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {[BUILTIN_CUSTOM_COMPONENTS[0], BUILTIN_CUSTOM_COMPONENTS[2], BUILTIN_CUSTOM_COMPONENTS[3]].map((comp) => (
-            <div
-              key={comp.componentKey}
-              className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface)] p-5 flex flex-col justify-between gap-4"
-            >
-              <div className="h-44 overflow-hidden rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-canvas)] p-2">
-                <div className="origin-top-left" style={{ width: '560px', height: '240px', transform: 'scale(0.62)' }}>
-                  <CustomComponentView
-                    element={{
-                      id: `preview-${comp.componentKey}`,
-                      name: comp.name,
-                      type: 'custom',
-                      x: 0,
-                      y: 0,
-                      width: 560,
-                      height: 240,
-                      rotation: 0,
-                      zIndex: 1,
-                      opacity: 1,
-                      visible: true,
-                      locked: false,
-                      componentKey: comp.componentKey,
-                      componentVersion: comp.version,
-                      props: comp.defaultProps,
-                    }}
-                    tokens={DESIGN_TOKEN_PRESETS[0]}
-                  />
-                </div>
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center scroll-animate opacity-0" style={{ animationDelay: '100ms' }}>
+              <div className="w-32 h-32 mx-auto mb-6">
+                <TemplateSelectionIcon className="w-full h-full drop-shadow-lg" />
               </div>
-              <div>
-                <div className="text-xs text-[var(--text-secondary)] font-mono-tabular mb-1">
-                  {comp.category} · v{comp.version}
-                </div>
-                <h3 className="font-semibold text-base mb-1">{comp.name}</h3>
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{comp.description}</p>
-              </div>
+              <h3 className="text-2xl font-black mb-3 text-slate-800">Choose Template</h3>
+              <p className="text-lg text-slate-600 leading-relaxed">
+                Pick from hundreds of professional templates or start from scratch
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Capabilities Matrix */}
-      <section className="border-t border-[var(--border-hairline)] bg-[var(--bg-surface)]">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="space-y-2">
-              <Layers className="w-5 h-5 text-[var(--accent)]" />
-              <h3 className="font-semibold">Layer & Grid Precision</h3>
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                Snap-to-grid positioning, alignment centerlines, lockable layers, undo/redo history, and inline text editing on desktop and touch.
+            <div className="text-center scroll-animate opacity-0" style={{ animationDelay: '200ms' }}>
+              <div className="w-32 h-32 mx-auto mb-6">
+                <CustomizeIcon className="w-full h-full drop-shadow-lg" />
+              </div>
+              <h3 className="text-2xl font-black mb-3 text-slate-800">Customize Content</h3>
+              <p className="text-lg text-slate-600 leading-relaxed">
+                Drag, drop, and edit with our intuitive AI-powered editor
               </p>
             </div>
-            <div className="space-y-2">
-              <Sliders className="w-5 h-5 text-[var(--accent)]" />
-              <h3 className="font-semibold">Design Token Registry</h3>
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                Switch entire decks between Warm Atelier, Gallery Editorial, Obsidian Studio, Nordic Slate, or custom admin token sets.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <FileOutput className="w-5 h-5 text-[var(--accent)]" />
-              <h3 className="font-semibold">Round-Trip PPTX & Print</h3>
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                Import existing `.pptx` decks (including Canva PPTX exports) with an explicit import report, edit freely, and export back to `.pptx`, PNG, or PDF.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <LayoutGrid className="w-5 h-5 text-[var(--accent)]" />
-              <h3 className="font-semibold">Permissioned Sharing</h3>
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                Issue read-only or collaborative edit links with optional passwords, expiration windows, and one-click revocation.
+
+            <div className="text-center scroll-animate opacity-0" style={{ animationDelay: '300ms' }}>
+              <div className="w-32 h-32 mx-auto mb-6">
+                <ExportIconStep className="w-full h-full drop-shadow-lg" />
+              </div>
+              <h3 className="text-2xl font-black mb-3 text-slate-800">Export & Share</h3>
+              <p className="text-lg text-slate-600 leading-relaxed">
+                Download as PowerPoint, PDF, or PNG and share anywhere
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
-        <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-8">
-          Technical & Workflow Questions
+      {/* Studio Image Section - Y2K Style */}
+      <section className="relative max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="order-2 lg:order-1 rounded-[32px] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] border-4 border-slate-800">
+            <img
+              src={SEED_IMAGE_PATHS.heroStudio}
+              alt="Professional design workspace"
+              referrerPolicy="no-referrer"
+              className="w-full h-full min-h-[400px] object-cover"
+            />
+          </div>
+          <div className="order-1 lg:order-2 space-y-6">
+            <h2 className="text-4xl sm:text-5xl font-black leading-tight" style={{ textShadow: '3px 3px 0px rgba(139,92,246,0.15)' }}>
+              Professional quality,{' '}
+              <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
+                no designer needed!
+              </span>
+            </h2>
+            <p className="text-xl font-bold text-slate-700 leading-relaxed">
+              Our AI engine makes every slide look amazing with perfect contrast, aligned grids, and beautiful typography!
+            </p>
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-green-300 to-emerald-400 flex items-center justify-center shrink-0 border-3 border-white shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-black text-xl mb-1 text-slate-800">Smart Color Contrast</h4>
+                  <p className="text-slate-700 font-semibold">Automatic WCAG compliance for readable text on any background</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-300 to-cyan-400 flex items-center justify-center shrink-0 border-3 border-white shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-black text-xl mb-1 text-slate-800">Precision Grid System</h4>
+                  <p className="text-slate-700 font-semibold">Elements snap to guide lines for perfect alignment every time</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-300 to-pink-400 flex items-center justify-center shrink-0 border-3 border-white shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-black text-xl mb-1 text-slate-800">Custom Components</h4>
+                  <p className="text-slate-700 font-semibold">Add charts, timelines, and interactive elements with one click</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Custom Components Showcase - Y2K Style */}
+      <section className="relative bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-20 border-y-4 border-slate-800">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <h2 className="text-4xl sm:text-5xl font-black mb-4" style={{ textShadow: '3px 3px 0px rgba(139,92,246,0.15)' }}>
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Powerful Components
+                </span>
+              </h2>
+              <p className="text-xl font-bold text-slate-700 max-w-2xl">
+                Charts, timelines, and data that update automatically!
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleOpenWorkspace}
+              className="px-6 py-3 rounded-full bg-white border-4 border-slate-800 text-slate-800 font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] transition-all self-start md:self-auto"
+            >
+              Explore Components
+            </button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[BUILTIN_CUSTOM_COMPONENTS[0], BUILTIN_CUSTOM_COMPONENTS[2], BUILTIN_CUSTOM_COMPONENTS[3]].map((comp) => (
+              <div
+                key={comp.componentKey}
+                className="rounded-[32px] bg-white p-6 border-4 border-slate-800 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200"
+              >
+                <div className="h-48 overflow-hidden rounded-2xl border-3 border-slate-100 bg-gradient-to-br from-slate-50 to-slate-100 p-3 mb-5">
+                  <div className="origin-top-left" style={{ width: '560px', height: '240px', transform: 'scale(0.58)' }}>
+                    <CustomComponentView
+                      element={{
+                        id: `preview-${comp.componentKey}`,
+                        name: comp.name,
+                        type: 'custom',
+                        x: 0,
+                        y: 0,
+                        width: 560,
+                        height: 240,
+                        rotation: 0,
+                        zIndex: 1,
+                        opacity: 1,
+                        visible: true,
+                        locked: false,
+                        componentKey: comp.componentKey,
+                        componentVersion: comp.version,
+                        props: comp.defaultProps,
+                      }}
+                      tokens={DESIGN_TOKEN_PRESETS[0]}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-black text-purple-700 bg-purple-100 px-3 py-1 rounded-full border-2 border-purple-200 inline-block mb-2">
+                    {comp.category} · v{comp.version}
+                  </div>
+                  <h3 className="font-black text-2xl mb-2 text-slate-800">{comp.name}</h3>
+                  <p className="text-slate-700 leading-relaxed font-semibold">{comp.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section - Y2K Style */}
+      <section className="relative max-w-4xl mx-auto px-6 sm:px-8 py-20">
+        <h2 className="text-4xl sm:text-5xl font-black text-center mb-12" style={{ textShadow: '3px 3px 0px rgba(139,92,246,0.15)' }}>
+          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Got Questions?
+          </span>
         </h2>
-        <div className="divide-y divide-[var(--border-hairline)] border-y border-[var(--border-hairline)]">
+        <div className="space-y-4">
           {FAQS.map((item, idx) => (
-            <div key={idx}>
+            <div key={idx} className="rounded-[24px] bg-white border-4 border-slate-800 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
               <button
                 type="button"
                 onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
                 aria-expanded={openFaq === idx}
-                className="w-full py-5 flex items-center justify-between text-left gap-4 font-medium"
+                className="w-full px-6 py-5 flex items-center justify-between text-left gap-4 font-black text-lg hover:bg-slate-50 transition-colors text-slate-800"
               >
                 <span>{item.q}</span>
                 <ChevronDown
-                  className={`w-4 h-4 shrink-0 text-[var(--text-secondary)] transition-transform ${
+                  className={`w-6 h-6 shrink-0 text-slate-600 transition-transform ${
                     openFaq === idx ? 'rotate-180' : ''
                   }`}
+                  strokeWidth={3}
                 />
               </button>
               {openFaq === idx && (
-                <p className="pb-5 text-sm text-[var(--text-secondary)] leading-relaxed">{item.a}</p>
+                <p className="px-6 pb-5 text-slate-700 leading-relaxed font-semibold">{item.a}</p>
               )}
             </div>
           ))}
         </div>
       </section>
 
-      {/* Quiet Footer */}
-      <footer className="border-t border-[var(--border-hairline)] bg-[var(--bg-surface)]">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--text-secondary)]">
-          <div className="flex items-center gap-4">
-            <span className="font-display font-bold text-sm text-[var(--text-primary)]">Vellum Studio</span>
-            <span aria-hidden="true">·</span>
-            <span>Presentation Architecture & Design Ecosystem</span>
+      {/* CTA Section - Y2K Style */}
+      <section className="relative max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12 py-20">
+        <div className="relative rounded-[48px] bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 p-12 lg:p-20 text-center overflow-hidden border-6 border-slate-800 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.15)]">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20" />
+          <div className="relative z-10">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-6" style={{ textShadow: '4px 4px 0px rgba(0,0,0,0.2)' }}>
+              Ready to Create Something Amazing?
+            </h2>
+            <p className="text-2xl text-white mb-10 max-w-2xl mx-auto font-bold">
+              Join thousands of people creating stunning presentations!
+            </p>
+            <button
+              type="button"
+              onClick={handleOpenWorkspace}
+              className="group inline-flex items-center gap-3 px-10 py-5 rounded-full bg-white text-purple-600 text-xl font-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] border-4 border-slate-800 hover:translate-x-2 hover:translate-y-2 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all duration-200"
+            >
+              <span>START FOR FREE</span>
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
+            </button>
+            <p className="mt-6 text-white font-black text-lg">No credit card · Free forever · Super easy!</p>
           </div>
-          <div className="flex items-center gap-6">
-            <a href="/templates" onClick={(e) => { e.preventDefault(); navigate({ page: 'templates' }); }} className="hover:text-[var(--text-primary)]">
-              Template Library
-            </a>
-            <a href="/create" onClick={(e) => { e.preventDefault(); handleOpenWorkspace(); }} className="hover:text-[var(--text-primary)]">
-              Studio Workspace
-            </a>
+        </div>
+      </section>
+
+      {/* Professional Footer */}
+      <footer className="relative bg-slate-900 text-white">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12 py-16">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            {/* Brand */}
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                  <span className="text-white text-2xl font-black">V</span>
+                </div>
+                <span className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Vellum Studio
+                </span>
+              </div>
+              <p className="text-slate-400 leading-relaxed max-w-md">
+                Create stunning presentations with AI-powered design tools. No design skills required.
+              </p>
+              <div className="flex gap-4 mt-6">
+                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-purple-600 transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-purple-600 transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-purple-600 transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                </a>
+              </div>
+            </div>
+
+            {/* Product */}
+            <div>
+              <h4 className="text-white font-bold mb-4">Product</h4>
+              <ul className="space-y-3">
+                <li><button onClick={() => scrollToSection(featuresRef)} className="text-slate-400 hover:text-purple-400 transition-colors">Features</button></li>
+                <li><button onClick={() => navigate({ page: 'templates' })} className="text-slate-400 hover:text-purple-400 transition-colors">Templates</button></li>
+                <li><button onClick={() => navigate({ page: 'templates' })} className="text-slate-400 hover:text-purple-400 transition-colors">Pricing</button></li>
+                <li><button onClick={handleOpenWorkspace} className="text-slate-400 hover:text-purple-400 transition-colors">Get Started</button></li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h4 className="text-white font-bold mb-4">Company</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-slate-400 hover:text-purple-400 transition-colors">About Us</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-purple-400 transition-colors">Blog</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-purple-400 transition-colors">Careers</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-purple-400 transition-colors">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-slate-800">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-400">
+              <div>
+                © 2024 Vellum Studio. All rights reserved.
+              </div>
+              <div className="flex gap-6">
+                <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
+                <a href="#" className="hover:text-purple-400 transition-colors">Terms of Service</a>
+                <a href="#" className="hover:text-purple-400 transition-colors">Cookie Policy</a>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

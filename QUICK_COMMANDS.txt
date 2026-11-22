@@ -1,0 +1,59 @@
+╔═══════════════════════════════════════════════════════════════╗
+║   VELLUM STUDIO - QUICK COMMAND REFERENCE                     ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📖 READ FIRST:
+   START_HERE.md
+
+🚀 START SERVER:
+   .\start-server.ps1
+
+🧪 RUN ALL TESTS:
+   .\test-complete-system.ps1
+
+🌐 OPEN IN BROWSER:
+   http://localhost:3000
+
+💳 CLAIM FREE CREDITS (50 every 12H):
+   Invoke-RestMethod -Uri "http://localhost:3000/api/credits/free" `
+       -Method Post -Headers @{"X-Demo-Workspace"="1"}
+
+🎨 GENERATE PHILIPPINE HISTORY PRESENTATION:
+   $body = @{
+       prompt = "Philippine history with cool designs"
+       slideCount = 10
+       category = "Education"
+       designPreferences = @{
+           useBorders = $true
+           useBackgrounds = $true
+           useElements = $true
+       }
+   } | ConvertTo-Json -Depth 4
+   
+   Invoke-RestMethod -Uri "http://localhost:3000/api/generate" `
+       -Method Post -ContentType "application/json" `
+       -Headers @{"X-Demo-Workspace"="1"} -Body $body
+
+📊 VIEW CREDITS:
+   Invoke-RestMethod -Uri "http://localhost:3000/api/credits" `
+       -Method Get -Headers @{"X-Demo-Workspace"="1"}
+
+💰 VIEW PRICING PLANS:
+   Invoke-RestMethod -Uri "http://localhost:3000/api/payment/plans" `
+       -Method Get
+
+🛑 STOP SERVER:
+   Ctrl+C in server window
+
+📚 FULL DOCUMENTATION:
+   - START_HERE.md (quick start)
+   - COMPLETE_SETUP_GUIDE.md (full guide)
+   - FINAL_SUMMARY.md (what was built)
+   - TEST_ADVANCED_FEATURES.md (manual testing)
+
+╔═══════════════════════════════════════════════════════════════╗
+║   STATUS: ✅ PRODUCTION READY                                 ║
+║   VERSION: 3.0.0 (Advanced Edition)                           ║
+║   CREDITS: 50 free every 12 hours                             ║
+║   PAYMENTS: GCash + PayPal ready                              ║
+╚═══════════════════════════════════════════════════════════════╝

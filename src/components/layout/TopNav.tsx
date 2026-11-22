@@ -39,8 +39,11 @@ export function TopNav() {
             href="/dashboard"
             onClick={(e) => {
               e.preventDefault();
-              if (isSignedInOrDemo) navigate({ page: 'dashboard' });
-              else enterDemoWorkspace();
+              if (isSignedInOrDemo) {
+                navigate({ page: 'dashboard' });
+              } else {
+                signInWithGoogle();
+              }
             }}
             className={`whitespace-nowrap shrink-0 transition-colors hover:text-[var(--text-primary)] ${
               route.page === 'dashboard' ? 'text-[var(--text-primary)] underline underline-offset-8 decoration-2 decoration-[var(--accent)]' : ''
@@ -52,8 +55,11 @@ export function TopNav() {
             href="/create"
             onClick={(e) => {
               e.preventDefault();
-              if (isSignedInOrDemo) navigate({ page: 'create' });
-              else enterDemoWorkspace().then(() => navigate({ page: 'create' }));
+              if (isSignedInOrDemo) {
+                navigate({ page: 'create' });
+              } else {
+                signInWithGoogle();
+              }
             }}
             className={`whitespace-nowrap shrink-0 transition-colors hover:text-[var(--text-primary)] ${
               route.page === 'create' ? 'text-[var(--text-primary)] underline underline-offset-8 decoration-2 decoration-[var(--accent)]' : ''
@@ -77,8 +83,11 @@ export function TopNav() {
             href="/profile"
             onClick={(e) => {
               e.preventDefault();
-              if (isSignedInOrDemo) navigate({ page: 'profile' });
-              else enterDemoWorkspace().then(() => navigate({ page: 'profile' }));
+              if (isSignedInOrDemo) {
+                navigate({ page: 'profile' });
+              } else {
+                signInWithGoogle();
+              }
             }}
             className={`whitespace-nowrap shrink-0 transition-colors hover:text-[var(--text-primary)] ${
               route.page === 'profile' ? 'text-[var(--text-primary)] underline underline-offset-8 decoration-2 decoration-[var(--accent)]' : ''
@@ -148,8 +157,11 @@ export function TopNav() {
             type="button"
             onClick={() => {
               setMobileMenuOpen(false);
-              if (isSignedInOrDemo) navigate({ page: 'dashboard' });
-              else enterDemoWorkspace();
+              if (isSignedInOrDemo) {
+                navigate({ page: 'dashboard' });
+              } else {
+                signInWithGoogle();
+              }
             }}
             className="w-full text-left px-3 min-h-[44px] rounded-lg text-sm font-medium hover:bg-[var(--bg-subtle)]"
           >
@@ -159,8 +171,11 @@ export function TopNav() {
             type="button"
             onClick={() => {
               setMobileMenuOpen(false);
-              if (isSignedInOrDemo) navigate({ page: 'create' });
-              else enterDemoWorkspace().then(() => navigate({ page: 'create' }));
+              if (isSignedInOrDemo) {
+                navigate({ page: 'create' });
+              } else {
+                signInWithGoogle();
+              }
             }}
             className="w-full text-left px-3 min-h-[44px] rounded-lg text-sm font-medium hover:bg-[var(--bg-subtle)]"
           >
@@ -180,8 +195,11 @@ export function TopNav() {
             type="button"
             onClick={() => {
               setMobileMenuOpen(false);
-              if (isSignedInOrDemo) navigate({ page: 'profile' });
-              else enterDemoWorkspace().then(() => navigate({ page: 'profile' }));
+              if (isSignedInOrDemo) {
+                navigate({ page: 'profile' });
+              } else {
+                signInWithGoogle();
+              }
             }}
             className="w-full text-left px-3 min-h-[44px] rounded-lg text-sm font-medium hover:bg-[var(--bg-subtle)]"
           >

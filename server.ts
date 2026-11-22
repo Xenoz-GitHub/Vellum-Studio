@@ -1,5 +1,10 @@
 import 'dotenv/config';
+import { config as dotenvConfig } from 'dotenv';
 import express from 'express';
+
+// Explicitly load .env.local first, then .env as fallback
+dotenvConfig({ path: '.env.local' });
+dotenvConfig({ path: '.env' });
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -40,15 +45,15 @@ import {
   requireAuthOrDemo,
   requireAdmin,
   type AuthRequest,
-} from './src/middleware/auth.ts';
+} from './src/middleware/neon-auth.ts';
 import {
   ALLOWED_MIME_TYPES,
   storeAndProcessUploadedFile,
 } from './src/services/file-processor.ts';
-import {
-  generatePresentationOutlineWithAi,
-  renderDocumentFromApprovedOutline,
-} from './src/services/ai-service.ts';
+import { AlgorithmicGenerator } from './src/services/algorithmic-generator.ts';
+import { AdvancedAlgorithmicGenerator } from './src/services/advanced-algorithmic-generator.ts';
+import { CreditsSystem } from './src/services/credits-system.ts';
+import { PaymentIntegration } from './src/services/payment-integration.ts';
 import {
   PresentationDocumentSchema,
   SlideOutlineItemSchema,
@@ -827,6 +832,251 @@ app.delete('/api/uploads/:id', requireAuthOrDemo, async (req: AuthRequest, res) 
     res.status(500).json({ error: 'Failed to delete uploaded asset.' });
   }
 });
+
+// ==================== ALGORITHMIC GENERATION ROUTES ====================
+
+// Generate presentation algorithmically (no external AI APIs)
+app.post('/api/generate', requireAuthOrDemo, async (req: AuthRequest, res) => {
+  const start = Date.now();
+  const {
+    prompt,
+    slideCount = 6,
+    category = 'Business',
+    themeId = 'gallery-alabaster',
+    aspectRatio = '16:9',
+    designPreferences = {},
+  } = req.body || {};
+
+  if (!prompt || String(prompt).trim().length < 3) {
+    return res.status(400).json({ error: 'Please provide a presentation prompt or topic.' });
+  }
+
+  try {
+    // Use advanced generator for better results
+    const generationRequest = {
+      prompt: String(prompt),
+      slideCount: Math.min(20, Math.max(1, Number(slideCount))),
+      category: String(category),
+      themeId: String(themeId),
+      aspectRatio: String(aspectRatio),
+      designPreferences: {
+        useBorders: designPreferences.useBorders !== false,
+        useBackgrounds: designPreferences.useBackgrounds !== false,
+        useElements: designPreferences.useElements !== false,
+        fontStyle: designPreferences.fontStyle || 'modern',
+        colorScheme: designPreferences.colorScheme || 'vibrant',
+      },
+    };
+
+    // Calculate tokens with advanced algorithm
+    const tokenUsage = AdvancedAlgorithmicGenerator.calculateAdvancedTokens(generationRequest);
+
+    const userCredits = await CreditsSystem.getUserCredits(req.authUser!.uid);
+    
+    if (userCredits.available < tokenUsage.creditsDeducted) {
+      return res.status(402).json({
+        error: `Insufficient credits. Required: ${tokenUsage.creditsDeducted}, Available: ${userCredits.available}`,
+        tokensRequired: tokenUsage.tokensUsed,
+        creditsRequired: tokenUsage.creditsDeducted,
+        creditsAvailable: userCredits.available,
+        suggestion: 'Claim your free 50 credits (available every 12 hours) or purchase a plan',
+      });
+    }
+
+    // Generate presentation with advanced algorithm
+    const document = AdvancedAlgorithmicGenerator.generateAdvancedPresentation(generationRequest);
+
+    // Create presentation record
+    const created = await createPresentationRecord({
+      ownerUid: req.authUser!.uid,
+      title: document.title,
+      description: document.description,
+      category: document.category,
+      themeId: document.themeId,
+      thumbnailUrl: '',
+      sourceType: 'algorithmic-advanced',
+      document,
+    });
+
+    // Deduct credits
+    const newBalance = await CreditsSystem.deductCredits({
+      userUid: req.authUser!.uid,
+      creditsUsed: tokenUsage.creditsDeducted,
+      tokensUsed: tokenUsage.tokensUsed,
+      action: 'generate_presentation',
+      metadata: {
+        presentationId: created.id,
+        slideCount: document.slides.length,
+        category: document.category,
+        designPreferences: generationRequest.designPreferences,
+        durationMs: Date.now() - start,
+      },
+    });
+
+    res.status(201).json({
+      presentation: created,
+      tokenUsage,
+      creditsRemaining: newBalance.available,
+      durationMs: Date.now() - start,
+      designApplied: generationRequest.designPreferences,
+    });
+  } catch (error: any) {
+    console.error('Algorithmic generation error:', error);
+    res.status(500).json({
+      error: error.message || 'Generation failed.',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    });
+  }
+});
+
+// Get credits info
+app.get('/api/credits', requireAuthOrDemo, async (req: AuthRequest, res) => {
+  try {
+    const credits = await CreditsSystem.getUserCredits(req.authUser!.uid);
+    res.json({
+      credits,
+      rates: CreditsSystem.CREDIT_RATES,
+      costs: CreditsSystem.CREDIT_COSTS,
+    });
+  } catch (error: any) {
+    console.error('Credits info error:', error);
+    res.status(500).json({ error: 'Failed to fetch credits info.' });
+  }
+});
+
+// Claim daily login bonus
+app.post('/api/credits/daily', requireAuthOrDemo, async (req: AuthRequest, res) => {
+  try {
+    const result = await CreditsSystem.claimDailyLoginBonus(
+      req.authUser!.uid,
+      req.headers['x-client-date'] as string
+    );
+    
+    if (!result) {
+      return res.json({ claimed: false, message: 'Already claimed today' });
+    }
+    
+    res.json({
+      claimed: true,
+      creditsEarned: CreditsSystem.CREDIT_RATES.DAILY_LOGIN,
+      newBalance: result,
+    });
+  } catch (error: any) {
+    console.error('Daily bonus error:', error);
+    res.status(500).json({ error: 'Failed to claim daily bonus.' });
+  }
+});
+
+// NEW: Claim free credits every 12 hours
+app.post('/api/credits/free', requireAuthOrDemo, async (req: AuthRequest, res) => {
+  try {
+    const result = await CreditsSystem.claimFreeCredits12H(req.authUser!.uid);
+    
+    if (!result) {
+      return res.json({ 
+        claimed: false, 
+        message: 'Free credits already claimed. Next claim available in less than 12 hours.',
+        nextAvailableIn: '< 12 hours'
+      });
+    }
+    
+    res.json({
+      claimed: true,
+      creditsEarned: CreditsSystem.CREDIT_RATES.FREE_DAILY_12H,
+      newBalance: result,
+      message: `Successfully claimed ${CreditsSystem.CREDIT_RATES.FREE_DAILY_12H} free credits!`,
+    });
+  } catch (error: any) {
+    console.error('Free credits error:', error);
+    res.status(500).json({ error: 'Failed to claim free credits.' });
+  }
+});
+
+// ==================== PAYMENT ROUTES ====================
+
+// Get payment plans
+app.get('/api/payment/plans', (_req, res) => {
+  try {
+    const plans = PaymentIntegration.getPaymentPlans();
+    res.json({ plans, currency: { php: '₱', usd: '$' } });
+  } catch (error: any) {
+    console.error('Payment plans error:', error);
+    res.status(500).json({ error: 'Failed to fetch payment plans.' });
+  }
+});
+
+// Create GCash payment
+app.post('/api/payment/gcash', requireAuthOrDemo, async (req: AuthRequest, res) => {
+  try {
+    const { plan, email } = req.body || {};
+    
+    if (!plan || !['STARTER', 'PRO', 'BUSINESS', 'ENTERPRISE'].includes(plan)) {
+      return res.status(400).json({ error: 'Invalid payment plan.' });
+    }
+    
+    const paymentResponse = await PaymentIntegration.createGCashPayment({
+      userUid: req.authUser!.uid,
+      plan,
+      method: 'gcash',
+      email: email || req.authUser!.email,
+    });
+    
+    res.json(paymentResponse);
+  } catch (error: any) {
+    console.error('GCash payment error:', error);
+    res.status(500).json({ error: 'Failed to create GCash payment.' });
+  }
+});
+
+// Create PayPal payment
+app.post('/api/payment/paypal', requireAuthOrDemo, async (req: AuthRequest, res) => {
+  try {
+    const { plan, email } = req.body || {};
+    
+    if (!plan || !['STARTER', 'PRO', 'BUSINESS', 'ENTERPRISE'].includes(plan)) {
+      return res.status(400).json({ error: 'Invalid payment plan.' });
+    }
+    
+    const paymentResponse = await PaymentIntegration.createPayPalPayment({
+      userUid: req.authUser!.uid,
+      plan,
+      method: 'paypal',
+      email: email || req.authUser!.email,
+    });
+    
+    res.json(paymentResponse);
+  } catch (error: any) {
+    console.error('PayPal payment error:', error);
+    res.status(500).json({ error: 'Failed to create PayPal payment.' });
+  }
+});
+
+// Payment webhook (for production)
+app.post('/api/payment/webhook/:method', async (req, res) => {
+  try {
+    const { method } = req.params;
+    const { transactionId, status, userUid, plan } = req.body || {};
+    
+    if (!['gcash', 'paypal'].includes(method)) {
+      return res.status(400).json({ error: 'Invalid payment method.' });
+    }
+    
+    const result = await PaymentIntegration.handlePaymentWebhook(
+      method as 'gcash' | 'paypal',
+      transactionId,
+      status,
+      userUid,
+      plan
+    );
+    
+    res.json(result);
+  } catch (error: any) {
+    console.error('Payment webhook error:', error);
+    res.status(500).json({ error: 'Failed to process payment webhook.' });
+  }
+});
+
+// ==================== LEGACY AI ROUTES (DEPRECATED) ====================
 
 // Multi-stage AI Pipeline: Stage 1-4 Outline Synthesis
 app.post('/api/ai/outline', requireAuthOrDemo, async (req: AuthRequest, res) => {
