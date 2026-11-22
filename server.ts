@@ -54,7 +54,7 @@ import {
   SlideOutlineItemSchema,
   dimensionsForAspectRatio,
 } from './src/core/schema.ts';
-import { evaluatePresentationQuality, autoRepairDocument } from './src/core/quality-scorer.ts';
+import { evaluatePresentationQuality, autoRepairDocument, contrastRatio } from './src/core/quality-scorer.ts';
 import { exportPresentationToPptxBuffer } from './src/core/pptx-adapter.ts';
 import { DESIGN_TOKEN_PRESETS } from './src/core/seed-data.ts';
 import { z } from 'zod';
@@ -382,6 +382,9 @@ app.post('/api/presentations', requireAuthOrDemo, async (req: AuthRequest, res) 
     } else {
       const tokens = DESIGN_TOKEN_PRESETS.find((t) => t.id === themeId) || DESIGN_TOKEN_PRESETS[0];
       const { width, height } = dimensionsForAspectRatio('16:9');
+      const blankBg = '#FFFFFF';
+      const blankInk = contrastRatio(tokens.colors.ink, blankBg) >= 4.5 ? tokens.colors.ink : '#191B1F';
+      const blankMuted = contrastRatio(tokens.colors.muted, blankBg) >= 3.5 ? tokens.colors.muted : '#686D76';
       docToUse = {
         id: 'pending',
         title: title || 'Untitled Presentation',
@@ -398,7 +401,7 @@ app.post('/api/presentations', requireAuthOrDemo, async (req: AuthRequest, res) 
             order: 0,
             layoutPattern: 'title-hero',
             title: title || 'Untitled Presentation',
-            background: { type: 'solid' as const, color: tokens.colors.background },
+            background: { type: 'solid' as const, color: blankBg },
             speakerNotes: '',
             transition: 'fade' as const,
             elements: [
@@ -449,7 +452,7 @@ app.post('/api/presentations', requireAuthOrDemo, async (req: AuthRequest, res) 
                 lineHeight: 1.12,
                 letterSpacing: -0.02,
                 textAlign: 'left' as const,
-                color: tokens.colors.ink,
+                color: blankInk,
                 borderRadius: 0,
                 padding: 4,
                 semanticRole: 'title' as const,
@@ -475,7 +478,7 @@ app.post('/api/presentations', requireAuthOrDemo, async (req: AuthRequest, res) 
                 lineHeight: 1.45,
                 letterSpacing: 0,
                 textAlign: 'left' as const,
-                color: tokens.colors.muted,
+                color: blankMuted,
                 borderRadius: 0,
                 padding: 4,
                 semanticRole: 'subtitle' as const,
@@ -794,6 +797,34 @@ app.get('/api/uploads', requireAuthOrDemo, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('GET /api/uploads error:', error);
     res.status(500).json({ error: 'Failed to fetch uploaded assets.' });
+  }
+});
+
+app.delete('/api/uploads/:id', requireAuthOrDemo, async (req: AuthRequest, res) => {
+  try {
+    const assetId = String(req.params.id);
+    const rows = await db
+      .select()
+      .from(uploadedAssets)
+      .where(and(eq(uploadedAssets.id, assetId), eq(uploadedAssets.ownerUid, req.authUser!.uid)))
+      .limit(1);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Upload not found.' });
+    }
+
+    await db
+      .delete(uploadedAssets)
+      .where(and(eq(uploadedAssets.id, assetId), eq(uploadedAssets.ownerUid, req.authUser!.uid)));
+
+    if (rows[0].storagePath) {
+      await fs.unlink(rows[0].storagePath).catch(() => {});
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('DELETE /api/uploads/:id error:', error);
+    res.status(500).json({ error: 'Failed to delete uploaded asset.' });
   }
 });
 

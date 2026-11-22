@@ -10,7 +10,17 @@ export function inchesToPx(inches: number): number {
   return Math.round(inches * PX_PER_INCH);
 }
 
-export const AspectRatioSchema = z.enum(['16:9', '4:3', '1:1']);
+export const AspectRatioSchema = z.enum([
+  '16:9',
+  '4:3',
+  '1:1',
+  '9:16',
+  'a4',
+  'letter',
+  'a5',
+  'book',
+  'custom',
+]);
 export type AspectRatio = z.infer<typeof AspectRatioSchema>;
 
 export function dimensionsForAspectRatio(ratio: AspectRatio): { width: number; height: number } {
@@ -19,6 +29,17 @@ export function dimensionsForAspectRatio(ratio: AspectRatio): { width: number; h
       return { width: 1024, height: 768 };
     case '1:1':
       return { width: 960, height: 960 };
+    case '9:16':
+      return { width: 720, height: 1280 };
+    case 'a4':
+      return { width: 794, height: 1123 };
+    case 'letter':
+      return { width: 816, height: 1056 };
+    case 'a5':
+      return { width: 559, height: 794 };
+    case 'book':
+      return { width: 720, height: 1020 };
+    case 'custom':
     case '16:9':
     default:
       return { width: 1280, height: 720 };
@@ -108,6 +129,9 @@ export const TextElementSchema = BaseElementSchema.extend({
   backgroundColor: z.string().optional(),
   gradientText: z.string().optional(),
   textShadow: z.string().optional(),
+  textEffect: z.enum(['none', 'sticker-outline', 'ransom-cutout']).default('none').optional(),
+  outlineColor: z.string().optional(),
+  outlineWidth: z.number().min(0).max(24).optional(),
   borderRadius: z.number().default(0),
   padding: z.number().default(4),
   semanticRole: z.enum(['title', 'subtitle', 'kicker', 'body', 'caption', 'quote', 'metric']).optional(),
@@ -151,6 +175,16 @@ export const ImageElementSchema = BaseElementSchema.extend({
   alt: z.string().default('Slide visual'),
   objectFit: z.enum(['cover', 'contain']).default('cover'),
   borderRadius: z.number().min(0).max(9999).default(8),
+  cropX: z.number().min(0).max(100).optional(),
+  cropY: z.number().min(0).max(100).optional(),
+  cropZoom: z.number().min(1).max(4).optional(),
+  brightness: z.number().min(20).max(200).optional(),
+  contrast: z.number().min(20).max(200).optional(),
+  saturation: z.number().min(0).max(250).optional(),
+  hueRotate: z.number().min(-180).max(180).optional(),
+  blur: z.number().min(0).max(20).optional(),
+  grayscale: z.number().min(0).max(100).optional(),
+  sepia: z.number().min(0).max(100).optional(),
   caption: z.string().optional(),
 });
 
@@ -159,6 +193,7 @@ export const IconElementSchema = BaseElementSchema.extend({
   iconName: z.string().default('Layers'),
   color: z.string().default('#7D1935'),
   strokeWidth: z.number().default(1.75),
+  colorMode: z.enum(['brand', 'mono']).default('brand').optional(),
 });
 
 export const ChartDatumSchema = z.object({
@@ -169,7 +204,9 @@ export const ChartDatumSchema = z.object({
 
 export const ChartElementSchema = BaseElementSchema.extend({
   type: z.literal('chart'),
-  chartKind: z.enum(['bar', 'line', 'pie', 'metric-bars']).default('bar'),
+  chartKind: z
+    .enum(['bar', 'horizontal-bar', 'line', 'area', 'pie', 'donut', 'metric-bars'])
+    .default('bar'),
   title: z.string().default('Chart'),
   data: z.array(ChartDatumSchema).min(1),
   showValues: z.boolean().default(true),
@@ -181,11 +218,13 @@ export const ChartElementSchema = BaseElementSchema.extend({
 
 export const TableElementSchema = BaseElementSchema.extend({
   type: z.literal('table'),
+  tableStyle: z.enum(['classic', 'striped', 'minimal', 'comparison', 'dark']).default('classic').optional(),
   headers: z.array(z.string()).min(1),
   rows: z.array(z.array(z.string())),
   headerBg: z.string().default('#191B1F'),
   headerColor: z.string().default('#FFFFFF'),
   cellBg: z.string().default('#FFFFFF'),
+  stripeBg: z.string().optional(),
   textColor: z.string().default('#191B1F'),
   borderColor: z.string().default('#E6E4DE'),
 });
@@ -266,6 +305,8 @@ export const PresentationDocumentSchema = z.object({
   aspectRatio: AspectRatioSchema.default('16:9'),
   width: z.number().default(1280),
   height: z.number().default(720),
+  pageMargin: z.number().min(0).max(200).default(48).optional(),
+  showMargins: z.boolean().default(false).optional(),
   themeId: z.string().default('gallery-alabaster'),
   tokens: DesignTokensSchema,
   slides: z.array(SlideSchema).min(1),

@@ -248,6 +248,51 @@ export const DEFAULT_FONT_ASSETS = [
     licenseNote: 'SIL Open Font License 1.1',
   },
   {
+    id: 'font-anton',
+    family: 'Anton',
+    displayName: 'Anton Condensed Sticker',
+    role: 'display',
+    sourceType: 'google',
+    weights: [400],
+    licenseNote: 'SIL Open Font License 1.1',
+  },
+  {
+    id: 'font-titan-one',
+    family: 'Titan One',
+    displayName: 'Titan One Poster',
+    role: 'display',
+    sourceType: 'google',
+    weights: [400],
+    licenseNote: 'SIL Open Font License 1.1',
+  },
+  {
+    id: 'font-abril-fatface',
+    family: 'Abril Fatface',
+    displayName: 'Abril Fatface Cutout',
+    role: 'display',
+    sourceType: 'google',
+    weights: [400],
+    licenseNote: 'SIL Open Font License 1.1',
+  },
+  {
+    id: 'font-fredoka',
+    family: 'Fredoka',
+    displayName: 'Fredoka Chunky',
+    role: 'display',
+    sourceType: 'google',
+    weights: [500, 600, 700],
+    licenseNote: 'SIL Open Font License 1.1',
+  },
+  {
+    id: 'font-courier-prime',
+    family: 'Courier Prime',
+    displayName: 'Courier Prime Typewriter',
+    role: 'mono',
+    sourceType: 'google',
+    weights: [400, 700],
+    licenseNote: 'SIL Open Font License 1.1',
+  },
+  {
     id: 'font-jetbrains-mono',
     family: 'JetBrains Mono',
     displayName: 'JetBrains Mono (Tabular)',
@@ -285,7 +330,7 @@ function buildReportTemplateDoc(): PresentationDocument {
       order: 0,
       layoutPattern: 'title-hero',
       title: 'Annual Impact & Grid Audit 2026',
-      speakerNotes: 'Editorial masthead cover inspired by broadsheet research monographs.',
+      speakerNotes: 'Welcome everyone to our Q3 Autonomous Operations brief. Pause on the opening thesis before introducing the four strategic pillars.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -652,7 +697,7 @@ function buildReportTemplateDoc(): PresentationDocument {
       order: 1,
       layoutPattern: 'agenda-pillars',
       title: 'Contents & Audit Agenda',
-      speakerNotes: 'Four-pillar structured agenda with circular medallions and three-column report contents.',
+      speakerNotes: 'Walk through our four core focus areas—telemetry audit, automation rollout, cost recovery, and Q4 readiness.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -949,7 +994,7 @@ function buildReportTemplateDoc(): PresentationDocument {
       order: 2,
       layoutPattern: 'split-comparison',
       title: 'Impact & Methodology Comparison',
-      speakerNotes: 'Two-tone editorial spread contrasting legacy bottlenecks on a deep crimson panel against autonomous solutions on cream.',
+      speakerNotes: 'Contrast our previous manual handoff delays on the left against the automated workflow improvements on the right.',
       transition: 'fade',
       background: {
         type: 'solid',
@@ -1181,7 +1226,7 @@ function buildReportTemplateDoc(): PresentationDocument {
       order: 3,
       layoutPattern: 'data-chart-split',
       title: 'Cost Breakdown & Quarterly Output',
-      speakerNotes: 'Itemized operational breakdown with oversized stamp callout paired with quarterly dispatch bar chart.',
+      speakerNotes: 'Highlight the quarterly dispatch efficiency jump in the bar chart and review the top operational drivers.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -1469,7 +1514,7 @@ function buildReportTemplateDoc(): PresentationDocument {
       order: 4,
       layoutPattern: 'timeline-horizontal',
       title: 'Delivery Infographic Timeline',
-      speakerNotes: 'Clean horizontal connected dot timeline inspired by editorial infographic slides.',
+      speakerNotes: 'Walk left-to-right across the timeline milestones, calling out key sign-off dates and cross-team handoffs.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -1750,7 +1795,7 @@ function buildTechReportTemplateDoc(): PresentationDocument {
       order: 0,
       layoutPattern: 'title-hero',
       title: 'TECHNOLOGY — Deep Cobalt Systems Report',
-      speakerNotes: 'Deep midnight cobalt engineering report cover with geometric concentric arcs and hardware preview.',
+      speakerNotes: 'Open the engineering review by framing our reliability goals and hardware integration scope for this quarter.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -2019,7 +2064,7 @@ function buildTechReportTemplateDoc(): PresentationDocument {
       order: 1,
       layoutPattern: 'split-media',
       title: 'Vision, Mission & Telemetry Screens',
-      speakerNotes: 'Two-column strategic framing with split screen hardware and telemetry modules.',
+      speakerNotes: 'Point out the real-time telemetry readout alongside our system architecture highlights before diving into metrics.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -2289,7 +2334,7 @@ function buildTechReportTemplateDoc(): PresentationDocument {
       order: 2,
       layoutPattern: 'split-comparison',
       title: 'Custom IT Solution & Bottleneck Matrix',
-      speakerNotes: 'Contrast legacy manual bottlenecks against our automated engineering stack with crisp cobalt cards.',
+      speakerNotes: 'Emphasize the latency reduction and reliability gains achieved by retiring manual workflows.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -2529,7 +2574,7 @@ function buildTechReportTemplateDoc(): PresentationDocument {
       order: 3,
       layoutPattern: 'data-chart-split',
       title: 'Telemetry Throughput & Rollout Plan',
-      speakerNotes: 'Live area/line telemetry chart paired with engineering rollout milestones.',
+      speakerNotes: 'Reference the upward telemetry trend to connect post-launch stability with each completed rollout phase.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -2732,7 +2777,7 @@ function buildPortfolioTemplateDoc(): PresentationDocument {
       order: 0,
       layoutPattern: 'title-hero',
       title: 'Atelier Lindholm — Architecture & Spatial Portfolio',
-      speakerNotes: 'Clean Swiss-grid portfolio cover combining burgundy editorial accents, gallery framing, and studio credentials.',
+      speakerNotes: 'Introduce the studio monograph and share the creative thesis guiding this collection of work.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -3021,7 +3066,7 @@ function buildPortfolioTemplateDoc(): PresentationDocument {
       order: 1,
       layoutPattern: 'split-media',
       title: 'Case Study 01 — Kunsthalle East Vault',
-      speakerNotes: 'Deep burgundy-charcoal gallery case study slide for contrast rhythm.',
+      speakerNotes: 'Walk through this featured case study: outline the client brief, key constraints, and final outcome.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -3217,7 +3262,7 @@ function buildPortfolioTemplateDoc(): PresentationDocument {
       order: 2,
       layoutPattern: 'editorial-columns',
       title: 'Selected Works Ledger (2022–2026)',
-      speakerNotes: 'Commission index table paired with studio metric.',
+      speakerNotes: 'Review the selected commissions in the index table and highlight our turnaround benchmark on the right.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -3346,7 +3391,7 @@ function buildPortfolioTemplateDoc(): PresentationDocument {
       order: 3,
       layoutPattern: 'editorial-quote',
       title: 'Studio Philosophy & Contact',
-      speakerNotes: 'Closing curatorial quote.',
+      speakerNotes: 'Close on this reflection, thank everyone for attending, and open the floor for questions.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -3410,7 +3455,7 @@ function buildPubmatTemplateDoc(): PresentationDocument {
       order: 0,
       layoutPattern: 'title-hero',
       title: 'KINETIC 2026 — Keynote Poster PubMat',
-      speakerNotes: 'Square 1:1 Publicity Material cover poster for social drop and event screens.',
+      speakerNotes: 'Opening welcome screen: announce the event title, date, and venue while guests settle in.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -3704,7 +3749,7 @@ function buildPubmatTemplateDoc(): PresentationDocument {
       order: 1,
       layoutPattern: 'split-media',
       title: 'Speaker Spotlight PubMat Card',
-      speakerNotes: 'Square social speaker announcement card.',
+      speakerNotes: 'Introduce today’s featured speaker, share a quick bio highlight, and preview their session topic.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -3902,7 +3947,7 @@ function buildPubmatTemplateDoc(): PresentationDocument {
       order: 2,
       layoutPattern: 'process-steps',
       title: 'Program Lineup & Drop Schedule',
-      speakerNotes: 'Program timeline pubmat drop card.',
+      speakerNotes: 'Walk guests through today’s program timings so everyone knows when sessions and breaks begin.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -5040,7 +5085,7 @@ function buildBirthdayPubmatTemplateDoc(): PresentationDocument {
       order: 0,
       layoutPattern: 'freeform',
       title: 'Y2K Retro TV Birthday Cover',
-      speakerNotes: 'Click the TV portrait photo to upload your own image, double-click HAPPY / BIRTHDAY to edit text, or select the flip calendar and stickers to customize.',
+      speakerNotes: 'Welcome everyone and kick off the celebration! Cue the intro music, share a favorite memory, and invite guests to raise a toast.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -5547,7 +5592,7 @@ function buildBirthdayPubmatTemplateDoc(): PresentationDocument {
       order: 1,
       layoutPattern: 'timeline',
       title: 'Party Schedule & Lineup Poster',
-      speakerNotes: 'Editable schedule card inspired by clean pubmat schedule banners.',
+      speakerNotes: 'Walk guests through tonight’s celebration lineup—from dinner and games to cake cutting and the surprise toast.',
       transition: 'fade',
       background: {
         type: 'gradient',
@@ -5803,7 +5848,7 @@ function buildBirthdayPubmatTemplateDoc(): PresentationDocument {
       order: 2,
       layoutPattern: 'split-media',
       title: 'Polaroid Scrapbook Birthday Edition',
-      speakerNotes: 'Alternate warm burgundy & polaroid scrapbook layout for birthday shoutouts.',
+      speakerNotes: 'Share a warm closing tribute and invite friends and family to add their birthday wishes and favorite memories.',
       transition: 'fade',
       background: {
         type: 'gradient',

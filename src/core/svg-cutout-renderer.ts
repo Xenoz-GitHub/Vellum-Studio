@@ -1,4 +1,7 @@
 import type { ShapeElement, Slide } from './schema';
+import { EXTENDED_CUTOUT_CATALOG, renderExtendedDesignSvg } from './design-elements-catalog';
+
+export { ICON_CATALOG, renderIconSvgString, type IconCatalogDef, type IconCategory } from './brand-icon-catalog';
 
 export function escapeXml(str: string): string {
   return String(str)
@@ -13,7 +16,17 @@ export interface CutoutItemDef {
   kind: string;
   name: string;
   category:
+    | 'Doodles & Crayon'
+    | 'Characters'
+    | 'Education'
+    | 'Christmas & New Year'
+    | 'Headers & Lines'
+    | 'Borders & Edges'
+    | 'Backgrounds'
     | 'Celebration'
+    | 'Tech & HUD'
+    | 'Vintage & Flourishes'
+    | 'History & Culture'
     | 'Retro Tech'
     | 'Nature & Fauna'
     | 'Ribbons & Badges'
@@ -448,6 +461,777 @@ export const CUTOUT_CATALOG: CutoutItemDef[] = [
       outlineColor: '#1E293B',
     },
   },
+  // 22 Education & Study Cutout Illustrations
+  {
+    kind: 'edu-book',
+    name: 'Hardcover Book',
+    category: 'Education',
+    keywords: ['book', 'textbook', 'education', 'study', 'read', 'school', 'library'],
+    defaultWidth: 165,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'edu-book',
+      label: 'STUDY',
+      primaryColor: '#7D1935',
+      secondaryColor: '#FDE68A',
+      accentColor: '#FEF3C7',
+      outlineColor: '#3B0816',
+    },
+  },
+  {
+    kind: 'edu-book-stack',
+    name: 'Stacked Books',
+    category: 'Education',
+    keywords: ['books', 'stack', 'textbooks', 'education', 'library', 'study'],
+    defaultWidth: 220,
+    defaultHeight: 165,
+    defaultProps: {
+      stickerKind: 'edu-book-stack',
+      label: '',
+      primaryColor: '#2563EB',
+      secondaryColor: '#7D1935',
+      accentColor: '#059669',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'edu-open-book',
+    name: 'Open Book',
+    category: 'Education',
+    keywords: ['book', 'open book', 'reading', 'pages', 'literature', 'education'],
+    defaultWidth: 235,
+    defaultHeight: 155,
+    defaultProps: {
+      stickerKind: 'edu-open-book',
+      label: '',
+      primaryColor: '#1D4ED8',
+      secondaryColor: '#FFFBEB',
+      accentColor: '#EF4444',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'edu-medal',
+    name: 'Gold Medal',
+    category: 'Education',
+    keywords: ['medal', 'award', 'prize', 'first place', 'honor', 'education', 'achievement'],
+    defaultWidth: 155,
+    defaultHeight: 215,
+    defaultProps: {
+      stickerKind: 'edu-medal',
+      label: '1ST',
+      primaryColor: '#F59E0B',
+      secondaryColor: '#FEF08A',
+      accentColor: '#DC2626',
+      outlineColor: '#78350F',
+    },
+  },
+  {
+    kind: 'edu-trophy-cup',
+    name: 'Trophy Cup',
+    category: 'Education',
+    keywords: ['cup', 'trophy', 'award', 'champion', 'winner', 'medal', 'education'],
+    defaultWidth: 175,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'edu-trophy-cup',
+      label: 'TOP 1',
+      primaryColor: '#F59E0B',
+      secondaryColor: '#FEF08A',
+      accentColor: '#78350F',
+      outlineColor: '#451A03',
+    },
+  },
+  {
+    kind: 'edu-coffee-cup',
+    name: 'Study Cup / Mug',
+    category: 'Education',
+    keywords: ['cup', 'mug', 'coffee', 'tea', 'study', 'desk', 'warm'],
+    defaultWidth: 175,
+    defaultHeight: 165,
+    defaultProps: {
+      stickerKind: 'edu-coffee-cup',
+      label: 'A+',
+      primaryColor: '#FFFFFF',
+      secondaryColor: '#7D1935',
+      accentColor: '#92400E',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'edu-quill-ink',
+    name: 'Feather Pen & Inkwell',
+    category: 'Education',
+    keywords: ['feather pen', 'quill', 'ink', 'inkwell', 'writing', 'calligraphy', 'education'],
+    defaultWidth: 195,
+    defaultHeight: 215,
+    defaultProps: {
+      stickerKind: 'edu-quill-ink',
+      label: '',
+      primaryColor: '#F8FAFC',
+      secondaryColor: '#38BDF8',
+      accentColor: '#1E293B',
+      outlineColor: '#0F172A',
+    },
+  },
+  {
+    kind: 'edu-feather-pen',
+    name: 'Feather Quill Pen',
+    category: 'Education',
+    keywords: ['feather', 'quill', 'pen', 'no ink', 'writing', 'author', 'education'],
+    defaultWidth: 185,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'edu-feather-pen',
+      label: '',
+      primaryColor: '#F59E0B',
+      secondaryColor: '#FEF3C7',
+      accentColor: '#7D1935',
+      outlineColor: '#451A03',
+    },
+  },
+  {
+    kind: 'edu-headphones',
+    name: 'Study Headphones',
+    category: 'Education',
+    keywords: ['headphone', 'headphones', 'audio', 'listening', 'study', 'music', 'podcast'],
+    defaultWidth: 195,
+    defaultHeight: 190,
+    defaultProps: {
+      stickerKind: 'edu-headphones',
+      label: '',
+      primaryColor: '#1E293B',
+      secondaryColor: '#3B82F6',
+      accentColor: '#E2E8F0',
+      outlineColor: '#0F172A',
+    },
+  },
+  {
+    kind: 'edu-pen',
+    name: 'Fountain Pen',
+    category: 'Education',
+    keywords: ['pen', 'fountain pen', 'write', 'stationery', 'office', 'education'],
+    defaultWidth: 180,
+    defaultHeight: 180,
+    defaultProps: {
+      stickerKind: 'edu-pen',
+      label: '',
+      primaryColor: '#1E3A8A',
+      secondaryColor: '#F59E0B',
+      accentColor: '#E2E8F0',
+      outlineColor: '#0F172A',
+    },
+  },
+  {
+    kind: 'edu-pencil',
+    name: 'Classic #2 Pencil',
+    category: 'Education',
+    keywords: ['pencil', 'pen', 'draw', 'school', 'sketch', 'education'],
+    defaultWidth: 180,
+    defaultHeight: 180,
+    defaultProps: {
+      stickerKind: 'edu-pencil',
+      label: '',
+      primaryColor: '#FACC15',
+      secondaryColor: '#FB7185',
+      accentColor: '#FDE68A',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'edu-ruler',
+    name: 'School Ruler',
+    category: 'Education',
+    keywords: ['ruler', 'measure', 'geometry', 'math', 'stationery', 'education'],
+    defaultWidth: 250,
+    defaultHeight: 95,
+    defaultProps: {
+      stickerKind: 'edu-ruler',
+      label: 'CM',
+      primaryColor: '#FBBF24',
+      secondaryColor: '#FEF3C7',
+      accentColor: '#78350F',
+      outlineColor: '#451A03',
+    },
+  },
+  {
+    kind: 'edu-calculator',
+    name: 'Calculator',
+    category: 'Education',
+    keywords: ['calculator', 'math', 'numbers', 'finance', 'stem', 'education'],
+    defaultWidth: 165,
+    defaultHeight: 215,
+    defaultProps: {
+      stickerKind: 'edu-calculator',
+      label: '123.45',
+      primaryColor: '#334155',
+      secondaryColor: '#BEF264',
+      accentColor: '#F97316',
+      outlineColor: '#0F172A',
+    },
+  },
+  {
+    kind: 'edu-grad-cap',
+    name: 'Graduation Cap',
+    category: 'Education',
+    keywords: ['graduation', 'cap', 'mortarboard', 'diploma', 'university', 'education'],
+    defaultWidth: 220,
+    defaultHeight: 160,
+    defaultProps: {
+      stickerKind: 'edu-grad-cap',
+      label: '',
+      primaryColor: '#1E293B',
+      secondaryColor: '#334155',
+      accentColor: '#F59E0B',
+      outlineColor: '#0F172A',
+    },
+  },
+  {
+    kind: 'edu-diploma',
+    name: 'Diploma Scroll',
+    category: 'Education',
+    keywords: ['diploma', 'certificate', 'scroll', 'degree', 'graduation', 'education'],
+    defaultWidth: 220,
+    defaultHeight: 145,
+    defaultProps: {
+      stickerKind: 'edu-diploma',
+      label: '',
+      primaryColor: '#FEF3C7',
+      secondaryColor: '#FDE68A',
+      accentColor: '#DC2626',
+      outlineColor: '#78350F',
+    },
+  },
+  {
+    kind: 'edu-globe',
+    name: 'Desk Globe',
+    category: 'Education',
+    keywords: ['globe', 'world', 'geography', 'earth', 'map', 'education'],
+    defaultWidth: 175,
+    defaultHeight: 215,
+    defaultProps: {
+      stickerKind: 'edu-globe',
+      label: '',
+      primaryColor: '#38BDF8',
+      secondaryColor: '#22C55E',
+      accentColor: '#D97706',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'edu-microscope',
+    name: 'Lab Microscope',
+    category: 'Education',
+    keywords: ['microscope', 'science', 'biology', 'lab', 'stem', 'education'],
+    defaultWidth: 175,
+    defaultHeight: 220,
+    defaultProps: {
+      stickerKind: 'edu-microscope',
+      label: '',
+      primaryColor: '#E2E8F0',
+      secondaryColor: '#3B82F6',
+      accentColor: '#475569',
+      outlineColor: '#0F172A',
+    },
+  },
+  {
+    kind: 'edu-backpack',
+    name: 'Campus Backpack',
+    category: 'Education',
+    keywords: ['backpack', 'bag', 'school', 'student', 'campus', 'education'],
+    defaultWidth: 180,
+    defaultHeight: 210,
+    defaultProps: {
+      stickerKind: 'edu-backpack',
+      label: '',
+      primaryColor: '#7D1935',
+      secondaryColor: '#F59E0B',
+      accentColor: '#FDE68A',
+      outlineColor: '#3B0816',
+    },
+  },
+  {
+    kind: 'edu-chalkboard',
+    name: 'Classroom Chalkboard',
+    category: 'Education',
+    keywords: ['chalkboard', 'blackboard', 'classroom', 'lesson', 'teacher', 'education'],
+    defaultWidth: 250,
+    defaultHeight: 175,
+    defaultProps: {
+      stickerKind: 'edu-chalkboard',
+      label: 'A + B = C',
+      primaryColor: '#14532D',
+      secondaryColor: '#B45309',
+      accentColor: '#FFFFFF',
+      outlineColor: '#451A03',
+    },
+  },
+  {
+    kind: 'edu-lightbulb',
+    name: 'Idea Lightbulb',
+    category: 'Education',
+    keywords: ['lightbulb', 'idea', 'smart', 'brainstorm', 'learn', 'education'],
+    defaultWidth: 155,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'edu-lightbulb',
+      label: '',
+      primaryColor: '#FDE047',
+      secondaryColor: '#FEF9C3',
+      accentColor: '#94A3B8',
+      outlineColor: '#854D0E',
+    },
+  },
+  {
+    kind: 'edu-protractor',
+    name: 'Geometry Protractor',
+    category: 'Education',
+    keywords: ['protractor', 'ruler', 'triangle', 'geometry', 'math', 'drafting', 'education'],
+    defaultWidth: 225,
+    defaultHeight: 150,
+    defaultProps: {
+      stickerKind: 'edu-protractor',
+      label: '180°',
+      primaryColor: '#BAE6FD',
+      secondaryColor: '#7DD3FC',
+      accentColor: '#0284C7',
+      outlineColor: '#0369A1',
+    },
+  },
+  {
+    kind: 'edu-notebook',
+    name: 'Spiral Notebook',
+    category: 'Education',
+    keywords: ['notebook', 'journal', 'notes', 'book', 'school', 'education'],
+    defaultWidth: 175,
+    defaultHeight: 215,
+    defaultProps: {
+      stickerKind: 'edu-notebook',
+      label: 'NOTES',
+      primaryColor: '#2563EB',
+      secondaryColor: '#FFFFFF',
+      accentColor: '#F59E0B',
+      outlineColor: '#1E293B',
+    },
+  },
+  // 26 Stickman & Cartoon Character Pose Stickers (12 Stickmen + 14 Cartoons)
+  {
+    kind: 'char-stick-presenter',
+    name: 'Stickman Presenter',
+    category: 'Characters',
+    keywords: ['stickman', 'stick figure', 'presenter', 'pitch', 'easel', 'chart', 'character', 'pose', 'sticker'],
+    defaultWidth: 210,
+    defaultHeight: 195,
+    defaultProps: {
+      stickerKind: 'char-stick-presenter',
+      label: 'PITCH',
+      primaryColor: '#2563EB',
+      secondaryColor: '#F59E0B',
+      accentColor: '#FEF3C7',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-idea',
+    name: 'Stickman Eureka Idea',
+    category: 'Characters',
+    keywords: ['stickman', 'idea', 'lightbulb', 'eureka', 'smart', 'character', 'pose', 'sticker'],
+    defaultWidth: 165,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'char-stick-idea',
+      label: '',
+      primaryColor: '#FACC15',
+      secondaryColor: '#FEF9C3',
+      accentColor: '#F97316',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-thinking',
+    name: 'Stickman Thinking',
+    category: 'Characters',
+    keywords: ['stickman', 'thinking', 'question', 'ponder', 'wonder', 'character', 'pose', 'sticker'],
+    defaultWidth: 185,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'char-stick-thinking',
+      label: '?',
+      primaryColor: '#3B82F6',
+      secondaryColor: '#DBEAFE',
+      accentColor: '#F59E0B',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-cheering',
+    name: 'Stickman Cheering',
+    category: 'Characters',
+    keywords: ['stickman', 'cheer', 'celebrate', 'happy', 'win', 'jump', 'character', 'pose', 'sticker'],
+    defaultWidth: 175,
+    defaultHeight: 195,
+    defaultProps: {
+      stickerKind: 'char-stick-cheering',
+      label: '',
+      primaryColor: '#EC4899',
+      secondaryColor: '#FACC15',
+      accentColor: '#38BDF8',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-pointing',
+    name: 'Stickman Pointing',
+    category: 'Characters',
+    keywords: ['stickman', 'pointing', 'arrow', 'focus', 'direction', 'character', 'pose', 'sticker'],
+    defaultWidth: 195,
+    defaultHeight: 190,
+    defaultProps: {
+      stickerKind: 'char-stick-pointing',
+      label: '',
+      primaryColor: '#7D1935',
+      secondaryColor: '#FDE68A',
+      accentColor: '#3B82F6',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-laptop',
+    name: 'Stickman Working',
+    category: 'Characters',
+    keywords: ['stickman', 'laptop', 'desk', 'work', 'study', 'coding', 'character', 'pose', 'sticker'],
+    defaultWidth: 205,
+    defaultHeight: 180,
+    defaultProps: {
+      stickerKind: 'char-stick-laptop',
+      label: '',
+      primaryColor: '#2563EB',
+      secondaryColor: '#CBD5E1',
+      accentColor: '#F59E0B',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-sign',
+    name: 'Stickman Holding Sign',
+    category: 'Characters',
+    keywords: ['stickman', 'sign', 'placard', 'banner', 'message', 'character', 'pose', 'sticker'],
+    defaultWidth: 195,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'char-stick-sign',
+      label: 'KEY NOTE',
+      primaryColor: '#7D1935',
+      secondaryColor: '#FEF3C7',
+      accentColor: '#F59E0B',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-climb',
+    name: 'Stickman Growth Climb',
+    category: 'Characters',
+    keywords: ['stickman', 'climb', 'stairs', 'growth', 'goal', 'chart', 'character', 'pose', 'sticker'],
+    defaultWidth: 215,
+    defaultHeight: 195,
+    defaultProps: {
+      stickerKind: 'char-stick-climb',
+      label: '',
+      primaryColor: '#10B981',
+      secondaryColor: '#FACC15',
+      accentColor: '#3B82F6',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-confused',
+    name: 'Stickman Shrugging',
+    category: 'Characters',
+    keywords: ['stickman', 'shrug', 'confused', 'faq', 'question', 'character', 'pose', 'sticker'],
+    defaultWidth: 175,
+    defaultHeight: 195,
+    defaultProps: {
+      stickerKind: 'char-stick-confused',
+      label: '?!',
+      primaryColor: '#F97316',
+      secondaryColor: '#FEF3C7',
+      accentColor: '#3B82F6',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-running',
+    name: 'Stickman Sprinting',
+    category: 'Characters',
+    keywords: ['stickman', 'running', 'fast', 'sprint', 'deadline', 'action', 'character', 'pose', 'sticker'],
+    defaultWidth: 205,
+    defaultHeight: 180,
+    defaultProps: {
+      stickerKind: 'char-stick-running',
+      label: '',
+      primaryColor: '#EF4444',
+      secondaryColor: '#F59E0B',
+      accentColor: '#38BDF8',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-megaphone',
+    name: 'Stickman Megaphone',
+    category: 'Characters',
+    keywords: ['stickman', 'megaphone', 'announce', 'promo', 'shout', 'character', 'pose', 'sticker'],
+    defaultWidth: 215,
+    defaultHeight: 190,
+    defaultProps: {
+      stickerKind: 'char-stick-megaphone',
+      label: 'NEWS!',
+      primaryColor: '#7D1935',
+      secondaryColor: '#FACC15',
+      accentColor: '#38BDF8',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-stick-team',
+    name: 'Stickmen High-Five',
+    category: 'Characters',
+    keywords: ['stickman', 'team', 'high five', 'collab', 'partnership', 'character', 'pose', 'sticker'],
+    defaultWidth: 220,
+    defaultHeight: 185,
+    defaultProps: {
+      stickerKind: 'char-stick-team',
+      label: '',
+      primaryColor: '#2563EB',
+      secondaryColor: '#EC4899',
+      accentColor: '#FACC15',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-wave',
+    name: 'Cartoon Waving Hello',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'wave', 'hello', 'welcome', 'intro', 'pose', 'sticker'],
+    defaultWidth: 185,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'char-toon-wave',
+      label: 'HI!',
+      primaryColor: '#2563EB',
+      secondaryColor: '#FDBA74',
+      accentColor: '#FACC15',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-thumbsup',
+    name: 'Cartoon Thumbs Up',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'thumbs up', 'approve', 'good', 'like', 'pose', 'sticker'],
+    defaultWidth: 185,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'char-toon-thumbsup',
+      label: '',
+      primaryColor: '#10B981',
+      secondaryColor: '#FDBA74',
+      accentColor: '#FACC15',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-presenter',
+    name: 'Cartoon Pitch Presenter',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'presenter', 'teacher', 'slide', 'pitch', 'pose', 'sticker'],
+    defaultWidth: 220,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'char-toon-presenter',
+      label: 'DATA',
+      primaryColor: '#7D1935',
+      secondaryColor: '#FDBA74',
+      accentColor: '#38BDF8',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-idea',
+    name: 'Cartoon Idea Spark',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'idea', 'lightbulb', 'insight', 'eureka', 'pose', 'sticker'],
+    defaultWidth: 185,
+    defaultHeight: 210,
+    defaultProps: {
+      stickerKind: 'char-toon-idea',
+      label: '',
+      primaryColor: '#8B5CF6',
+      secondaryColor: '#FDBA74',
+      accentColor: '#FDE047',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-think',
+    name: 'Cartoon Pondering',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'thinking', 'question', 'faq', 'consider', 'pose', 'sticker'],
+    defaultWidth: 195,
+    defaultHeight: 205,
+    defaultProps: {
+      stickerKind: 'char-toon-think',
+      label: '?',
+      primaryColor: '#0EA5E9',
+      secondaryColor: '#FDBA74',
+      accentColor: '#F59E0B',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-laptop',
+    name: 'Cartoon Laptop Work',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'laptop', 'remote', 'work', 'study', 'pose', 'sticker'],
+    defaultWidth: 205,
+    defaultHeight: 195,
+    defaultProps: {
+      stickerKind: 'char-toon-laptop',
+      label: '',
+      primaryColor: '#F97316',
+      secondaryColor: '#FDBA74',
+      accentColor: '#38BDF8',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-trophy',
+    name: 'Cartoon Champion',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'trophy', 'winner', 'award', 'success', 'pose', 'sticker'],
+    defaultWidth: 195,
+    defaultHeight: 210,
+    defaultProps: {
+      stickerKind: 'char-toon-trophy',
+      label: '',
+      primaryColor: '#EC4899',
+      secondaryColor: '#FDBA74',
+      accentColor: '#FACC15',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-rocket',
+    name: 'Cartoon Launch Hero',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'rocket', 'launch', 'startup', 'growth', 'pose', 'sticker'],
+    defaultWidth: 195,
+    defaultHeight: 210,
+    defaultProps: {
+      stickerKind: 'char-toon-rocket',
+      label: '',
+      primaryColor: '#2563EB',
+      secondaryColor: '#FDBA74',
+      accentColor: '#EF4444',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-megaphone',
+    name: 'Cartoon Announcer',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'megaphone', 'announce', 'marketing', 'pubmat', 'pose', 'sticker'],
+    defaultWidth: 215,
+    defaultHeight: 200,
+    defaultProps: {
+      stickerKind: 'char-toon-megaphone',
+      label: 'NEW!',
+      primaryColor: '#7D1935',
+      secondaryColor: '#FDBA74',
+      accentColor: '#FACC15',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-reading',
+    name: 'Cartoon Book Reader',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'book', 'reading', 'study', 'education', 'pose', 'sticker'],
+    defaultWidth: 195,
+    defaultHeight: 195,
+    defaultProps: {
+      stickerKind: 'char-toon-reading',
+      label: '',
+      primaryColor: '#0D9488',
+      secondaryColor: '#FDBA74',
+      accentColor: '#F59E0B',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-graduate',
+    name: 'Cartoon Graduate',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'graduate', 'cap', 'diploma', 'education', 'pose', 'sticker'],
+    defaultWidth: 195,
+    defaultHeight: 210,
+    defaultProps: {
+      stickerKind: 'char-toon-graduate',
+      label: '',
+      primaryColor: '#1E3A8A',
+      secondaryColor: '#FDBA74',
+      accentColor: '#FACC15',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-teamwork',
+    name: 'Cartoon Team Fist-Bump',
+    category: 'Characters',
+    keywords: ['cartoon', 'characters', 'team', 'teamwork', 'fist bump', 'collab', 'pose', 'sticker'],
+    defaultWidth: 230,
+    defaultHeight: 190,
+    defaultProps: {
+      stickerKind: 'char-toon-teamwork',
+      label: '',
+      primaryColor: '#2563EB',
+      secondaryColor: '#FDBA74',
+      accentColor: '#EC4899',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-meditate',
+    name: 'Cartoon Calm Focus',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'meditate', 'focus', 'calm', 'balance', 'pose', 'sticker'],
+    defaultWidth: 195,
+    defaultHeight: 195,
+    defaultProps: {
+      stickerKind: 'char-toon-meditate',
+      label: '',
+      primaryColor: '#6366F1',
+      secondaryColor: '#FDBA74',
+      accentColor: '#34D399',
+      outlineColor: '#1E293B',
+    },
+  },
+  {
+    kind: 'char-toon-speech',
+    name: 'Cartoon Speech Callout',
+    category: 'Characters',
+    keywords: ['cartoon', 'character', 'speech', 'quote', 'note', 'callout', 'pose', 'sticker'],
+    defaultWidth: 215,
+    defaultHeight: 200,
+    defaultProps: {
+      stickerKind: 'char-toon-speech',
+      label: 'NOTE!',
+      primaryColor: '#E11D48',
+      secondaryColor: '#FDBA74',
+      accentColor: '#FEF08A',
+      outlineColor: '#1E293B',
+    },
+  },
+  ...EXTENDED_CUTOUT_CATALOG,
 ];
 
 export function renderCutoutIllustrationSvg(
@@ -941,7 +1725,6 @@ export function renderCutoutIllustrationSvg(
       };
 
     case 'confetti-pop':
-    default:
       return {
         viewBox: '0 0 200 200',
         svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
@@ -951,498 +1734,1124 @@ export function renderCutoutIllustrationSvg(
   <path d="M110 106 C136 96 154 78 178 72" fill="none" stroke="${acc}" stroke-width="4" stroke-linecap="round"/>
   <circle cx="96" cy="40" r="8" fill="${acc}"/>
   <circle cx="158" cy="44" r="7" fill="${c1}"/>
-  <rect x="148" y="108" width="14" height="14" rx="3" fill="${c2}" transform="rotate(24 155 115)"/>
+      <rect x="148" y="108" width="14" height="14" rx="3" fill="${c2}" transform="rotate(24 155 115)"/>
   <polygon points="122,56 128,70 142,72 132,82 134,96 122,90 110,96 112,82 102,72 116,70" fill="${c2}" stroke="${out}" stroke-width="1.5"/>
 </svg>`,
       };
+
+    // Education & Study Renderers
+    case 'edu-book':
+      return {
+        viewBox: '0 0 180 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 220">
+  <rect x="26" y="18" width="128" height="176" rx="10" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M26 30 H48 V194 H26 A10 10 0 0 1 18 184 V40 A10 10 0 0 1 26 30 Z" fill="${out}" opacity="0.24"/>
+  <rect x="26" y="166" width="128" height="28" rx="6" fill="${acc}" stroke="${out}" stroke-width="2.5"/>
+  <line x1="48" y1="18" x2="48" y2="166" stroke="${out}" stroke-width="2.5"/>
+  <line x1="48" y1="180" x2="148" y2="180" stroke="${out}" stroke-width="1.2" opacity="0.45"/>
+  <polygon points="116,188 116,214 128,204 140,214 140,188" fill="#EF4444" stroke="${out}" stroke-width="2"/>
+  <rect x="64" y="46" width="72" height="44" rx="6" fill="${c2}" stroke="${out}" stroke-width="2"/>
+  <text x="100" y="73" text-anchor="middle" fill="${out}" font-family="Outfit, sans-serif" font-weight="800" font-size="14" letter-spacing="1">${(label || 'STUDY').slice(0, 8)}</text>
+  <line x1="68" y1="112" x2="132" y2="112" stroke="${c2}" stroke-width="3" stroke-linecap="round"/>
+  <line x1="78" y1="126" x2="122" y2="126" stroke="${c2}" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
+</svg>`,
+      };
+
+    case 'edu-book-stack':
+      return {
+        viewBox: '0 0 240 180',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <!-- Bottom book -->
+  <rect x="20" y="122" width="200" height="40" rx="7" fill="${acc}" stroke="${out}" stroke-width="2.6"/>
+  <rect x="34" y="128" width="176" height="28" rx="4" fill="#FEF3C7"/>
+  <rect x="20" y="122" width="24" height="40" rx="5" fill="${acc}" stroke="${out}" stroke-width="2.6"/>
+  <line x1="56" y1="138" x2="196" y2="138" stroke="#CBD5E1" stroke-width="2"/>
+  <line x1="56" y1="148" x2="196" y2="148" stroke="#CBD5E1" stroke-width="2"/>
+  <!-- Middle book -->
+  <rect x="32" y="76" width="184" height="40" rx="7" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <rect x="46" y="82" width="160" height="28" rx="4" fill="#FFFBEB"/>
+  <rect x="32" y="76" width="24" height="40" rx="5" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <line x1="68" y1="92" x2="192" y2="92" stroke="#CBD5E1" stroke-width="2"/>
+  <line x1="68" y1="102" x2="192" y2="102" stroke="#CBD5E1" stroke-width="2"/>
+  <!-- Top book -->
+  <g transform="rotate(-4 120 50)">
+    <rect x="26" y="30" width="180" height="40" rx="7" fill="${c1}" stroke="${out}" stroke-width="2.6"/>
+    <rect x="40" y="36" width="156" height="28" rx="4" fill="#FFFFFF"/>
+    <rect x="26" y="30" width="24" height="40" rx="5" fill="${c1}" stroke="${out}" stroke-width="2.6"/>
+    <polygon points="154,64 154,88 164,80 174,88 174,64" fill="#F59E0B" stroke="${out}" stroke-width="1.8"/>
+  </g>
+</svg>`,
+      };
+
+    case 'edu-open-book':
+      return {
+        viewBox: '0 0 260 170',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 170">
+  <rect x="14" y="28" width="232" height="122" rx="10" fill="${c1}" stroke="${out}" stroke-width="2.8"/>
+  <path d="M24 22 C60 16 106 20 130 34 C154 20 200 16 236 22 V136 C200 130 154 134 130 148 C106 134 60 130 24 136 Z" fill="${c2}" stroke="${out}" stroke-width="2.4" stroke-linejoin="round"/>
+  <line x1="130" y1="34" x2="130" y2="148" stroke="${out}" stroke-width="2.4"/>
+  <path d="M40 48 H110 M40 64 H110 M40 80 H102 M40 96 H110 M40 112 H94" stroke="#94A3B8" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M150 48 H220 M150 64 H220 M150 80 H212 M150 96 H220 M150 112 H198" stroke="#94A3B8" stroke-width="2.8" stroke-linecap="round"/>
+  <polygon points="168,20 168,72 178,62 188,72 188,20" fill="${acc}" stroke="${out}" stroke-width="1.8"/>
+</svg>`,
+      };
+
+    case 'edu-medal':
+      return {
+        viewBox: '0 0 180 240',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 240">
+  <defs>
+    <radialGradient id="${uid}-med" cx="38%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="${c2}"/>
+      <stop offset="55%" stop-color="${c1}"/>
+      <stop offset="100%" stop-color="${out}"/>
+    </radialGradient>
+  </defs>
+  <polygon points="36,12 72,12 102,94 68,94" fill="${acc}" stroke="${out}" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="144,12 108,12 78,94 112,94" fill="#1D4ED8" stroke="${out}" stroke-width="2.4" stroke-linejoin="round"/>
+  <rect x="74" y="88" width="32" height="14" rx="5" fill="${c2}" stroke="${out}" stroke-width="2"/>
+  <circle cx="90" cy="158" r="64" fill="url(#${uid}-med)" stroke="${out}" stroke-width="3"/>
+  <circle cx="90" cy="158" r="50" fill="none" stroke="${c2}" stroke-width="3" stroke-dasharray="6 4"/>
+  <polygon points="90,118 100,140 124,143 106,159 111,182 90,170 69,182 74,159 56,143 80,140" fill="${c2}" stroke="${out}" stroke-width="2" stroke-linejoin="round"/>
+  ${label ? `<rect x="64" y="148" width="52" height="22" rx="11" fill="${out}"/><text x="90" y="164" text-anchor="middle" fill="${c2}" font-family="Outfit, sans-serif" font-weight="900" font-size="13">${label.slice(0, 5)}</text>` : ''}
+</svg>`,
+      };
+
+    case 'edu-trophy-cup':
+      return {
+        viewBox: '0 0 200 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 230">
+  <defs>
+    <linearGradient id="${uid}-cup" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${c1}"/>
+      <stop offset="40%" stop-color="${c2}"/>
+      <stop offset="100%" stop-color="${acc}"/>
+    </linearGradient>
+  </defs>
+  <path d="M46 42 H22 C12 42 12 94 42 102 L58 106" fill="none" stroke="${c1}" stroke-width="10" stroke-linecap="round"/>
+  <path d="M154 42 H178 C188 42 188 94 158 102 L142 106" fill="none" stroke="${c1}" stroke-width="10" stroke-linecap="round"/>
+  <path d="M46 42 H22 C12 42 12 94 42 102 L58 106 M154 42 H178 C188 42 188 94 158 102 L142 106" fill="none" stroke="${out}" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M46 26 H154 L144 98 C140 130 120 144 100 144 C80 144 60 130 56 98 Z" fill="url(#${uid}-cup)" stroke="${out}" stroke-width="2.8"/>
+  <rect x="88" y="142" width="24" height="34" fill="url(#${uid}-cup)" stroke="${out}" stroke-width="2.5"/>
+  <rect x="52" y="176" width="96" height="34" rx="6" fill="${acc}" stroke="${out}" stroke-width="2.8"/>
+  <rect x="66" y="186" width="68" height="16" rx="3" fill="${c2}" stroke="${out}" stroke-width="1.5"/>
+  <text x="100" y="198" text-anchor="middle" fill="${out}" font-family="Outfit, sans-serif" font-weight="900" font-size="10">${(label || 'TOP 1').slice(0, 8)}</text>
+</svg>`,
+      };
+
+    case 'edu-coffee-cup':
+      return {
+        viewBox: '0 0 200 190',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 190">
+  <path d="M68 42 C60 28 74 20 68 8 M94 38 C86 24 100 16 94 4 M120 42 C112 28 126 20 120 8" fill="none" stroke="#94A3B8" stroke-width="3.5" stroke-linecap="round"/>
+  <ellipse cx="94" cy="158" rx="74" ry="18" fill="#E2E8F0" stroke="${out}" stroke-width="2.5"/>
+  <path d="M144 74 H164 C180 74 182 114 162 120 L140 124" fill="none" stroke="${c1}" stroke-width="14" stroke-linecap="round"/>
+  <path d="M144 74 H164 C180 74 182 114 162 120 L140 124" fill="none" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M38 62 H150 L142 134 C140 150 124 158 94 158 C64 158 48 150 46 134 Z" fill="${c1}" stroke="${out}" stroke-width="2.8"/>
+  <ellipse cx="94" cy="62" rx="56" ry="14" fill="#E2E8F0" stroke="${out}" stroke-width="2.5"/>
+  <ellipse cx="94" cy="64" rx="46" ry="9" fill="${acc}"/>
+  <circle cx="94" cy="110" r="22" fill="${c2}"/>
+  ${label ? `<text x="94" y="117" text-anchor="middle" fill="#FFFFFF" font-family="Outfit, sans-serif" font-weight="900" font-size="18">${label.slice(0, 5)}</text>` : ''}
+</svg>`,
+      };
+
+    case 'edu-quill-ink':
+      return {
+        viewBox: '0 0 210 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 230">
+  <!-- Glass Inkwell -->
+  <polygon points="44,148 112,148 126,174 118,214 38,214 30,174" fill="${c2}" fill-opacity="0.45" stroke="${out}" stroke-width="2.6" stroke-linejoin="round"/>
+  <polygon points="36,178 120,178 114,208 42,208" fill="${acc}" opacity="0.88"/>
+  <rect x="54" y="130" width="48" height="18" rx="4" fill="#94A3B8" stroke="${out}" stroke-width="2.4"/>
+  <!-- Feather Quill -->
+  <path d="M78 142 C96 102 122 62 184 14 C180 56 154 96 108 118 L86 144 Z" fill="${c1}" stroke="${out}" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M150 42 L134 56 M136 62 L116 74 M120 82 L102 92" stroke="${out}" stroke-width="2" stroke-linecap="round"/>
+  <path d="M76 146 C104 108 140 64 184 14" fill="none" stroke="${c2}" stroke-width="3.2" stroke-linecap="round"/>
+  <polygon points="74,144 84,148 72,162" fill="${c2}" stroke="${out}" stroke-width="1.8"/>
+</svg>`,
+      };
+
+    case 'edu-feather-pen':
+      return {
+        viewBox: '0 0 200 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
+  <defs>
+    <linearGradient id="${uid}-fp" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${c2}"/>
+      <stop offset="55%" stop-color="${c1}"/>
+      <stop offset="100%" stop-color="${acc}"/>
+    </linearGradient>
+  </defs>
+  <path d="M46 168 C58 114 94 56 172 16 C168 68 134 118 82 146 L56 172 Z" fill="url(#${uid}-fp)" stroke="${out}" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M138 42 L116 58 M120 66 L96 80 M102 90 L80 102 M86 114 L68 124" stroke="${out}" stroke-width="2" stroke-linecap="round" opacity="0.65"/>
+  <path d="M42 174 C76 128 120 74 172 16" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <polygon points="40,170 54,178 28,202" fill="#E2E8F0" stroke="${out}" stroke-width="2.2" stroke-linejoin="round"/>
+  <line x1="28" y1="202" x2="43" y2="184" stroke="${out}" stroke-width="2"/>
+</svg>`,
+      };
+
+    case 'edu-headphones':
+      return {
+        viewBox: '0 0 210 200',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 200">
+  <path d="M36 112 V94 A69 69 0 0 1 174 94 V112" fill="none" stroke="${c1}" stroke-width="16" stroke-linecap="round"/>
+  <path d="M54 40 A66 66 0 0 1 156 40" fill="none" stroke="${c2}" stroke-width="10" stroke-linecap="round"/>
+  <rect x="20" y="102" width="34" height="68" rx="14" fill="${c2}" stroke="${out}" stroke-width="2.8"/>
+  <rect x="44" y="108" width="16" height="56" rx="8" fill="${acc}" stroke="${out}" stroke-width="2.2"/>
+  <rect x="156" y="102" width="34" height="68" rx="14" fill="${c2}" stroke="${out}" stroke-width="2.8"/>
+  <rect x="150" y="108" width="16" height="56" rx="8" fill="${acc}" stroke="${out}" stroke-width="2.2"/>
+  <circle cx="34" cy="136" r="8" fill="${acc}" opacity="0.7"/>
+  <circle cx="176" cy="136" r="8" fill="${acc}" opacity="0.7"/>
+</svg>`,
+      };
+
+    case 'edu-pen':
+      return {
+        viewBox: '0 0 200 200',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g transform="rotate(-45 100 100)">
+    <rect x="34" y="84" width="112" height="32" rx="12" fill="${c1}" stroke="${out}" stroke-width="2.6"/>
+    <rect x="116" y="82" width="12" height="36" rx="3" fill="${c2}" stroke="${out}" stroke-width="2"/>
+    <path d="M128 88 H162 L170 94" fill="none" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>
+    <polygon points="34,86 34,114 8,100" fill="${acc}" stroke="${out}" stroke-width="2.4" stroke-linejoin="round"/>
+    <line x1="8" y1="100" x2="22" y2="100" stroke="${out}" stroke-width="2"/>
+    <circle cx="24" cy="100" r="2.5" fill="${out}"/>
+    <rect x="46" y="88" width="60" height="6" rx="3" fill="#FFFFFF" opacity="0.3"/>
+  </g>
+</svg>`,
+      };
+
+    case 'edu-pencil':
+      return {
+        viewBox: '0 0 200 200',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g transform="rotate(-45 100 100)">
+    <rect x="148" y="84" width="24" height="32" rx="8" fill="${c2}" stroke="${out}" stroke-width="2.5"/>
+    <rect x="132" y="84" width="18" height="32" fill="#CBD5E1" stroke="${out}" stroke-width="2.4"/>
+    <rect x="44" y="84" width="88" height="32" fill="${c1}" stroke="${out}" stroke-width="2.5"/>
+    <line x1="44" y1="95" x2="132" y2="95" stroke="${out}" stroke-width="1.4" opacity="0.45"/>
+    <line x1="44" y1="105" x2="132" y2="105" stroke="${out}" stroke-width="1.4" opacity="0.45"/>
+    <polygon points="44,84 44,116 14,100" fill="${acc}" stroke="${out}" stroke-width="2.5" stroke-linejoin="round"/>
+    <polygon points="24,95 24,105 14,100" fill="${out}"/>
+  </g>
+</svg>`,
+      };
+
+    case 'edu-ruler':
+      return {
+        viewBox: '0 0 280 110',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 110">
+  <rect x="12" y="22" width="256" height="66" rx="8" fill="${c1}" stroke="${out}" stroke-width="2.8"/>
+  <rect x="20" y="30" width="240" height="50" rx="4" fill="${c2}" opacity="0.35"/>
+  ${Array.from({ length: 21 }, (_, idx) => {
+    const tx = 26 + idx * 11.4;
+    const th = idx % 5 === 0 ? 22 : idx % 2 === 0 ? 15 : 10;
+    return `<line x1="${tx.toFixed(1)}" y1="22" x2="${tx.toFixed(1)}" y2="${22 + th}" stroke="${acc}" stroke-width="${idx % 5 === 0 ? 2.4 : 1.5}" stroke-linecap="round"/>`;
+  }).join('')}
+  <circle cx="246" cy="64" r="6" fill="#FFFFFF" stroke="${out}" stroke-width="2"/>
+  <text x="42" y="72" fill="${acc}" font-family="monospace" font-weight="800" font-size="14">${(label || 'CM').slice(0, 6)}</text>
+</svg>`,
+      };
+
+    case 'edu-calculator':
+      return {
+        viewBox: '0 0 180 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 230">
+  <rect x="20" y="14" width="140" height="202" rx="16" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <rect x="34" y="28" width="112" height="44" rx="6" fill="${c2}" stroke="${out}" stroke-width="2.2"/>
+  <text x="136" y="58" text-anchor="end" fill="${out}" font-family="monospace" font-weight="800" font-size="20">${(label || '123.45').slice(0, 8)}</text>
+  ${[0, 1, 2, 3].map((row) =>
+    [0, 1, 2, 3].map((col) => {
+      const bx = 34 + col * 29;
+      const by = 88 + row * 29;
+      const isAcc = col === 3 || (row === 3 && col === 2);
+      return `<rect x="${bx}" y="${by}" width="23" height="22" rx="5" fill="${isAcc ? acc : '#F8FAFC'}" stroke="${out}" stroke-width="1.6"/>`;
+    }).join('')
+  ).join('')}
+</svg>`,
+      };
+
+    case 'edu-grad-cap':
+      return {
+        viewBox: '0 0 240 170',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 170">
+  <path d="M62 84 V126 C62 142 178 142 178 126 V84 Z" fill="${c2}" stroke="${out}" stroke-width="2.8"/>
+  <polygon points="120,18 228,64 120,110 12,64" fill="${c1}" stroke="${out}" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M120 64 L196 86 V128" fill="none" stroke="${acc}" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="120" cy="64" r="6" fill="${acc}" stroke="${out}" stroke-width="1.8"/>
+  <polygon points="188,128 204,128 208,152 184,152" fill="${acc}" stroke="${out}" stroke-width="2" stroke-linejoin="round"/>
+</svg>`,
+      };
+
+    case 'edu-diploma':
+      return {
+        viewBox: '0 0 240 160',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160">
+  <g transform="rotate(-14 120 80)">
+    <rect x="24" y="48" width="192" height="62" rx="18" fill="${c1}" stroke="${out}" stroke-width="2.8"/>
+    <ellipse cx="38" cy="79" rx="14" ry="31" fill="${c2}" stroke="${out}" stroke-width="2.5"/>
+    <ellipse cx="38" cy="79" rx="6" ry="16" fill="${out}" opacity="0.28"/>
+    <ellipse cx="202" cy="79" rx="14" ry="31" fill="${c2}" stroke="${out}" stroke-width="2.5"/>
+    <rect x="108" y="45" width="24" height="68" rx="4" fill="${acc}" stroke="${out}" stroke-width="2.2"/>
+    <polygon points="112,112 96,144 114,132 122,146 124,112" fill="${acc}" stroke="${out}" stroke-width="2"/>
+    <polygon points="128,112 144,144 126,132 118,146 116,112" fill="${acc}" stroke="${out}" stroke-width="2"/>
+  </g>
+</svg>`,
+      };
+
+    case 'edu-globe':
+      return {
+        viewBox: '0 0 190 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 230">
+  <rect x="50" y="194" width="90" height="22" rx="6" fill="${acc}" stroke="${out}" stroke-width="2.6"/>
+  <rect x="88" y="172" width="14" height="24" fill="${acc}" stroke="${out}" stroke-width="2.4"/>
+  <path d="M95 22 A78 78 0 0 1 95 174" fill="none" stroke="${acc}" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="95" cy="98" r="62" fill="${c1}" stroke="${out}" stroke-width="2.8"/>
+  <path d="M58 64 C74 58 88 72 78 90 C68 108 52 104 48 86 Z" fill="${c2}"/>
+  <path d="M108 56 C132 54 146 74 134 94 C122 112 102 106 104 82 Z" fill="${c2}"/>
+  <path d="M88 112 C108 110 120 128 106 144 C92 154 78 134 88 112 Z" fill="${c2}"/>
+  <ellipse cx="72" cy="70" rx="14" ry="8" fill="#FFFFFF" opacity="0.4" transform="rotate(-25 72 70)"/>
+</svg>`,
+      };
+
+    case 'edu-microscope':
+      return {
+        viewBox: '0 0 190 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 230">
+  <rect x="34" y="192" width="122" height="22" rx="8" fill="${acc}" stroke="${out}" stroke-width="2.6"/>
+  <path d="M126 192 V102 C126 78 106 66 88 66" fill="none" stroke="${c1}" stroke-width="18" stroke-linecap="round"/>
+  <path d="M126 192 V102 C126 78 106 66 88 66" fill="none" stroke="${out}" stroke-width="2.5" stroke-linecap="round"/>
+  <g transform="rotate(22 80 76)">
+    <rect x="64" y="24" width="32" height="92" rx="6" fill="${c1}" stroke="${out}" stroke-width="2.6"/>
+    <rect x="68" y="12" width="24" height="14" rx="4" fill="${c2}" stroke="${out}" stroke-width="2.2"/>
+    <rect x="70" y="114" width="20" height="16" rx="3" fill="${acc}" stroke="${out}" stroke-width="2"/>
+  </g>
+  <rect x="40" y="150" width="76" height="12" rx="4" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="126" cy="96" r="14" fill="${c2}" stroke="${out}" stroke-width="2.5"/>
+  <circle cx="126" cy="96" r="5" fill="#FFFFFF"/>
+</svg>`,
+      };
+
+    case 'edu-backpack':
+      return {
+        viewBox: '0 0 190 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 220">
+  <path d="M72 42 V24 A23 23 0 0 1 118 24 V42" fill="none" stroke="${out}" stroke-width="8" stroke-linecap="round"/>
+  <rect x="34" y="42" width="122" height="158" rx="36" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M36 96 C66 112 124 112 154 96" fill="none" stroke="${out}" stroke-width="2.5"/>
+  <rect x="52" y="124" width="86" height="58" rx="14" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <line x1="62" y1="142" x2="128" y2="142" stroke="${out}" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <rect x="88" y="138" width="14" height="10" rx="3" fill="${acc}" stroke="${out}" stroke-width="1.8"/>
+  <rect x="70" y="68" width="50" height="20" rx="8" fill="${acc}" stroke="${out}" stroke-width="2"/>
+</svg>`,
+      };
+
+    case 'edu-chalkboard':
+      return {
+        viewBox: '0 0 270 190',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 190">
+  <rect x="12" y="14" width="246" height="156" rx="10" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <rect x="24" y="26" width="222" height="128" rx="4" fill="${c1}" stroke="${out}" stroke-width="2"/>
+  <rect x="10" y="160" width="250" height="16" rx="5" fill="${c2}" stroke="${out}" stroke-width="2.5"/>
+  <rect x="46" y="150" width="38" height="10" rx="2" fill="#E2E8F0" stroke="${out}" stroke-width="1.5"/>
+  <rect x="190" y="153" width="24" height="7" rx="2" fill="${acc}" stroke="${out}" stroke-width="1.2"/>
+  <text x="135" y="98" text-anchor="middle" fill="${acc}" font-family="Caveat, cursive, sans-serif" font-weight="700" font-size="34">${(label || 'A + B = C').slice(0, 14)}</text>
+</svg>`,
+      };
+
+    case 'edu-lightbulb':
+      return {
+        viewBox: '0 0 170 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 220">
+  <path d="M85 8 V22 M28 32 L38 42 M142 32 L132 42 M14 84 H28 M142 84 H156" stroke="${c1}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M85 30 C50 30 28 56 28 88 C28 112 44 128 54 146 H116 C126 128 142 112 142 88 C142 56 120 30 85 30 Z" fill="${c1}" stroke="${out}" stroke-width="2.8"/>
+  <ellipse cx="64" cy="68" rx="14" ry="22" fill="${c2}" opacity="0.72" transform="rotate(-24 64 68)"/>
+  <path d="M72 146 V106 L80 96 L85 106 L90 96 L98 106 V146" fill="none" stroke="${out}" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="58" y="148" width="54" height="14" rx="5" fill="${acc}" stroke="${out}" stroke-width="2.4"/>
+  <rect x="62" y="164" width="46" height="14" rx="5" fill="${acc}" stroke="${out}" stroke-width="2.4"/>
+  <path d="M70 180 H100 L92 194 H78 Z" fill="#475569" stroke="${out}" stroke-width="2.2"/>
+</svg>`,
+      };
+
+    case 'edu-protractor':
+      return {
+        viewBox: '0 0 250 165',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 165">
+  <path d="M22 138 A103 103 0 0 1 228 138 Z" fill="${c1}" fill-opacity="0.82" stroke="${out}" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M62 138 A63 63 0 0 1 188 138 Z" fill="#FFFFFF" fill-opacity="0.6" stroke="${out}" stroke-width="2.2" stroke-linejoin="round"/>
+  ${Array.from({ length: 13 }, (_, idx) => {
+    const deg = 180 - idx * 15;
+    const rad = (deg * Math.PI) / 180;
+    const x1 = 125 + Math.cos(rad) * 100;
+    const y1 = 138 - Math.sin(rad) * 100;
+    const x2 = 125 + Math.cos(rad) * (idx % 3 === 0 ? 84 : 90);
+    const y2 = 138 - Math.sin(rad) * (idx % 3 === 0 ? 84 : 90);
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${acc}" stroke-width="${idx % 3 === 0 ? 2.4 : 1.5}"/>`;
+  }).join('')}
+  <text x="125" y="122" text-anchor="middle" fill="${out}" font-family="Outfit, sans-serif" font-weight="800" font-size="14">${(label || '180°').slice(0, 6)}</text>
+</svg>`,
+      };
+
+    case 'edu-notebook':
+      return {
+        viewBox: '0 0 190 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 230">
+  <rect x="148" y="42" width="18" height="32" rx="4" fill="${acc}" stroke="${out}" stroke-width="2"/>
+  <rect x="148" y="84" width="18" height="32" rx="4" fill="#22C55E" stroke="${out}" stroke-width="2"/>
+  <rect x="148" y="126" width="18" height="32" rx="4" fill="#EC4899" stroke="${out}" stroke-width="2"/>
+  <rect x="34" y="18" width="122" height="194" rx="12" fill="${c1}" stroke="${out}" stroke-width="2.8"/>
+  ${[38, 66, 94, 122, 150, 178].map((ry) => `<rect x="18" y="${ry}" width="26" height="10" rx="5" fill="#E2E8F0" stroke="${out}" stroke-width="2"/>`).join('')}
+  <rect x="58" y="48" width="78" height="54" rx="6" fill="${c2}" stroke="${out}" stroke-width="2.2"/>
+  <text x="97" y="79" text-anchor="middle" fill="${out}" font-family="Outfit, sans-serif" font-weight="800" font-size="14">${(label || 'NOTES').slice(0, 8)}</text>
+  <line x1="68" y1="88" x2="126" y2="88" stroke="#94A3B8" stroke-width="2"/>
+</svg>`,
+      };
+
+    // Stickman & Cartoon Character Pose Sticker Renderers
+    case 'char-stick-presenter':
+      return {
+        viewBox: '0 0 240 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 220">
+  <ellipse cx="115" cy="204" rx="88" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Easel Board with white sticker border -->
+  <line x1="142" y1="138" x2="128" y2="196" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+  <line x1="198" y1="138" x2="212" y2="196" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+  <rect x="114" y="24" width="112" height="114" rx="12" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10"/>
+  <line x1="142" y1="138" x2="128" y2="196" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <line x1="198" y1="138" x2="212" y2="196" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <line x1="170" y1="138" x2="170" y2="192" stroke="${out}" stroke-width="4.5" stroke-linecap="round"/>
+  <rect x="114" y="24" width="112" height="114" rx="10" fill="${acc}" stroke="${out}" stroke-width="3.5"/>
+  <rect x="128" y="38" width="84" height="22" rx="5" fill="${c1}"/>
+  <text x="170" y="53" text-anchor="middle" fill="#FFFFFF" font-family="Outfit, sans-serif" font-weight="800" font-size="12">${(label || 'PITCH').slice(0, 10)}</text>
+  <rect x="132" y="96" width="14" height="28" rx="3" fill="${c1}"/>
+  <rect x="156" y="82" width="14" height="42" rx="3" fill="${c2}"/>
+  <rect x="180" y="68" width="14" height="56" rx="3" fill="${c1}"/>
+  <!-- Stickman Sticker Halo -->
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="62" cy="54" r="22" fill="#FFFFFF"/>
+    <line x1="62" y1="76" x2="62" y2="136"/>
+    <path d="M62 94 L34 118 L44 134"/>
+    <path d="M62 94 L104 88 L142 74"/>
+    <path d="M62 136 L40 194"/>
+    <path d="M62 136 L84 194"/>
+  </g>
+  <!-- Stickman Crisp Ink -->
+  <circle cx="62" cy="54" r="21" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="56" cy="51" r="2.6" fill="${out}"/>
+  <circle cx="70" cy="51" r="2.6" fill="${out}"/>
+  <path d="M55 61 Q63 67 71 61" fill="none" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+  <line x1="62" y1="75" x2="62" y2="136" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="62,78 57,96 62,104 67,96" fill="${c1}"/>
+  <path d="M62 94 L34 118 L44 134" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M62 94 L104 88" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round"/>
+  <line x1="104" y1="88" x2="144" y2="73" stroke="${c2}" stroke-width="3.6" stroke-linecap="round"/>
+  <circle cx="145" cy="73" r="4" fill="${c1}"/>
+  <path d="M62 136 L40 194 M62 136 L84 194" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-idea':
+      return {
+        viewBox: '0 0 190 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 230">
+  <ellipse cx="95" cy="214" rx="52" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Idea Lightbulb -->
+  <path d="M95 16 C75 16 62 30 62 46 C62 59 71 67 76 76 H114 C119 67 128 59 128 46 C128 30 115 16 95 16 Z" fill="${c1}" stroke="#FFFFFF" stroke-width="10"/>
+  <path d="M44 44 H54 M136 44 H146 M54 20 L62 28 M136 20 L128 28 M95 4 V12" stroke="${c3Fallback(acc)}" stroke-width="4" stroke-linecap="round"/>
+  <path d="M95 16 C75 16 62 30 62 46 C62 59 71 67 76 76 H114 C119 67 128 59 128 46 C128 30 115 16 95 16 Z" fill="${c1}" stroke="${out}" stroke-width="3.2"/>
+  <ellipse cx="83" cy="36" rx="7" ry="12" fill="${c2}" opacity="0.8" transform="rotate(-20 83 36)"/>
+  <rect x="80" y="76" width="30" height="10" rx="4" fill="#94A3B8" stroke="${out}" stroke-width="2.5"/>
+  <!-- Stickman Halo -->
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="95" cy="112" r="20" fill="#FFFFFF"/>
+    <line x1="95" y1="132" x2="95" y2="174"/>
+    <path d="M95 144 L54 114 L52 92"/>
+    <path d="M95 144 L132 158 L124 176"/>
+    <path d="M95 174 L72 210"/>
+    <path d="M95 174 L118 210"/>
+  </g>
+  <circle cx="95" cy="112" r="20" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="88" cy="108" r="2.5" fill="${out}"/>
+  <circle cx="102" cy="108" r="2.5" fill="${out}"/>
+  <circle cx="95" cy="119" r="3.5" fill="${acc}"/>
+  <line x1="95" y1="132" x2="95" y2="174" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M95 144 L54 114 L52 92" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M95 144 L132 158 L124 176" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M95 174 L72 210 M95 174 L118 210" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-thinking':
+      return {
+        viewBox: '0 0 210 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 230">
+  <ellipse cx="86" cy="214" rx="54" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Thought Cloud -->
+  <circle cx="118" cy="86" r="6" fill="${c2}" stroke="${out}" stroke-width="2.5"/>
+  <circle cx="132" cy="72" r="9" fill="${c2}" stroke="${out}" stroke-width="2.5"/>
+  <path d="M134 56 C122 56 116 46 122 36 C124 24 136 16 150 20 C160 12 178 16 184 28 C196 30 200 44 192 54 C188 60 176 62 164 60 Z" fill="${c2}" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M134 56 C122 56 116 46 122 36 C124 24 136 16 150 20 C160 12 178 16 184 28 C196 30 200 44 192 54 C188 60 176 62 164 60 Z" fill="${c2}" stroke="${out}" stroke-width="3" stroke-linejoin="round"/>
+  <text x="158" y="47" text-anchor="middle" fill="${c1}" font-family="Outfit, sans-serif" font-weight="900" font-size="24">${(label || '?').slice(0, 4)}</text>
+  <!-- Stickman Halo -->
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="82" cy="88" r="22" fill="#FFFFFF"/>
+    <line x1="82" y1="110" x2="82" y2="164"/>
+    <path d="M82 124 L52 140 L68 158"/>
+    <path d="M82 124 L112 126 L94 106"/>
+    <path d="M82 164 L62 210"/>
+    <path d="M82 164 L106 210"/>
+  </g>
+  <circle cx="82" cy="88" r="21" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="76" cy="85" r="2.5" fill="${out}"/>
+  <circle cx="90" cy="85" r="2.5" fill="${out}"/>
+  <line x1="76" y1="96" x2="90" y2="95" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+  <line x1="82" y1="109" x2="82" y2="164" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M82 124 L52 140 L68 158" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M82 124 L112 126 L94 106" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="94" cy="105" r="4.5" fill="${acc}"/>
+  <path d="M82 164 L62 210 M82 164 L106 210" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-cheering':
+      return {
+        viewBox: '0 0 200 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
+  <ellipse cx="100" cy="204" rx="56" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Celebration bursts -->
+  <polygon points="36,36 41,47 53,48 44,56 46,68 36,62 26,68 28,56 19,48 31,47" fill="${c2}" stroke="${out}" stroke-width="2"/>
+  <polygon points="164,34 168,44 179,45 171,52 173,63 164,57 155,63 157,52 149,45 160,44" fill="${c1}" stroke="${out}" stroke-width="2"/>
+  <circle cx="100" cy="22" r="6" fill="${acc}"/>
+  <circle cx="52" cy="84" r="5" fill="${c1}"/>
+  <circle cx="150" cy="82" r="5" fill="${c2}"/>
+  <!-- Jumping Stickman Halo -->
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="100" cy="68" r="22" fill="#FFFFFF"/>
+    <line x1="100" y1="90" x2="100" y2="142"/>
+    <path d="M100 104 L60 72 L52 46"/>
+    <path d="M100 104 L140 72 L148 46"/>
+    <path d="M100 142 L68 170 L58 192"/>
+    <path d="M100 142 L132 170 L142 192"/>
+  </g>
+  <circle cx="100" cy="68" r="21" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <path d="M89 64 Q93 59 97 64 M103 64 Q107 59 111 64" fill="none" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M89 72 Q100 84 111 72 Z" fill="${c1}" stroke="${out}" stroke-width="2"/>
+  <line x1="100" y1="89" x2="100" y2="142" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M100 104 L60 72 L52 46 M100 104 L140 72 L148 46" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 142 L68 170 L58 192 M100 142 L132 170 L142 192" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-pointing':
+      return {
+        viewBox: '0 0 220 210',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 210">
+  <ellipse cx="92" cy="196" rx="64" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Target Arrow Badge -->
+  <polygon points="154,68 188,68 188,54 214,80 188,106 188,92 154,92" fill="${c1}" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
+  <polygon points="154,68 188,68 188,54 214,80 188,106 188,92 154,92" fill="${c1}" stroke="${out}" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Stickman Halo -->
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="80" cy="52" r="22" fill="#FFFFFF"/>
+    <path d="M80 74 L74 132"/>
+    <path d="M78 90 L44 108 L52 128"/>
+    <path d="M78 90 L146 80"/>
+    <path d="M74 132 L46 188"/>
+    <path d="M74 132 L108 188"/>
+  </g>
+  <circle cx="80" cy="52" r="21" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="76" cy="49" r="2.6" fill="${out}"/>
+  <circle cx="90" cy="49" r="2.6" fill="${out}"/>
+  <path d="M76 59 Q85 65 92 58" fill="none" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M80 73 L74 132" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M78 90 L44 108 L52 128" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M78 90 L146 80" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round"/>
+  <circle cx="146" cy="80" r="5" fill="${c2}" stroke="${out}" stroke-width="2"/>
+  <path d="M74 132 L46 188 M74 132 L108 188" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-laptop':
+      return {
+        viewBox: '0 0 230 200',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 200">
+  <ellipse cx="115" cy="184" rx="90" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Stickman Behind Desk -->
+  <g stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="74" cy="52" r="20" fill="#FFFFFF"/>
+    <path d="M74 72 L70 124 L42 134 L42 176"/>
+    <path d="M70 124 L94 176"/>
+    <path d="M72 88 L112 104 L126 112"/>
+  </g>
+  <circle cx="74" cy="52" r="19" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="70" cy="50" r="2.4" fill="${out}"/>
+  <circle cx="82" cy="50" r="2.4" fill="${out}"/>
+  <path d="M70 59 Q77 64 84 59" fill="none" stroke="${out}" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M74 71 L70 124 L42 134 L42 176 M70 124 L94 176" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M72 88 L112 104 L126 112" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Desk & Laptop -->
+  <rect x="86" y="116" width="128" height="12" rx="5" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <line x1="104" y1="128" x2="104" y2="178" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <line x1="196" y1="128" x2="196" y2="178" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="122,116 154,116 172,72 140,72" fill="${c1}" stroke="${out}" stroke-width="3" stroke-linejoin="round"/>
+  <line x1="112" y1="116" x2="154" y2="116" stroke="${out}" stroke-width="4" stroke-linecap="round"/>
+  <rect x="178" y="96" width="18" height="20" rx="4" fill="${acc}" stroke="${out}" stroke-width="2.4"/>
+</svg>`,
+      };
+
+    case 'char-stick-sign':
+      return {
+        viewBox: '0 0 220 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230">
+  <ellipse cx="110" cy="214" rx="56" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Signboard Halo + Card -->
+  <rect x="28" y="16" width="164" height="62" rx="12" fill="${c2}" stroke="#FFFFFF" stroke-width="10"/>
+  <!-- Stickman Halo -->
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="110" cy="108" r="20" fill="#FFFFFF"/>
+    <line x1="110" y1="128" x2="110" y2="172"/>
+    <path d="M110 140 L54 114 L54 78"/>
+    <path d="M110 140 L166 114 L166 78"/>
+    <path d="M110 172 L86 210"/>
+    <path d="M110 172 L134 210"/>
+  </g>
+  <rect x="28" y="16" width="164" height="62" rx="12" fill="${c2}" stroke="${out}" stroke-width="3.5"/>
+  <rect x="36" y="24" width="148" height="46" rx="8" fill="#FFFFFF" stroke="${c1}" stroke-width="2"/>
+  <text x="110" y="54" text-anchor="middle" fill="${c1}" font-family="Outfit, sans-serif" font-weight="900" font-size="22" letter-spacing="0.8">${(label || 'KEY NOTE').slice(0, 12)}</text>
+  <circle cx="110" cy="108" r="19" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="103" cy="105" r="2.5" fill="${out}"/>
+  <circle cx="117" cy="105" r="2.5" fill="${out}"/>
+  <path d="M103 114 Q110 120 117 114" fill="none" stroke="${out}" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="110" y1="127" x2="110" y2="172" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M110 140 L54 114 L54 78 M110 140 L166 114 L166 78" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M110 172 L86 210 M110 172 L134 210" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-climb':
+      return {
+        viewBox: '0 0 240 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 220">
+  <ellipse cx="122" cy="204" rx="92" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Rising Bar Steps -->
+  <rect x="34" y="162" width="44" height="36" rx="6" fill="${acc}" stroke="${out}" stroke-width="3"/>
+  <rect x="92" y="128" width="44" height="70" rx="6" fill="${acc}" stroke="${out}" stroke-width="3"/>
+  <rect x="150" y="90" width="52" height="108" rx="6" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <!-- Target Star -->
+  <polygon points="184,22 190,36 205,38 194,48 197,62 184,55 171,62 174,48 163,38 178,36" fill="${c2}" stroke="${out}" stroke-width="2.4" stroke-linejoin="round"/>
+  <!-- Climbing Stickman -->
+  <g stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="104" cy="48" r="18" fill="#FFFFFF"/>
+    <path d="M104 66 L108 106"/>
+    <path d="M106 82 L78 96"/>
+    <path d="M106 82 L144 68"/>
+    <path d="M108 106 L80 128 L66 160"/>
+    <path d="M108 106 L140 100 L158 90"/>
+  </g>
+  <circle cx="104" cy="48" r="17" fill="#FFFFFF" stroke="${out}" stroke-width="4.2"/>
+  <circle cx="101" cy="46" r="2.2" fill="${out}"/>
+  <circle cx="111" cy="46" r="2.2" fill="${out}"/>
+  <path d="M101 54 Q107 58 113 53" fill="none" stroke="${out}" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M104 65 L108 106" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round"/>
+  <path d="M106 82 L78 96 M106 82 L144 68" fill="none" stroke="${out}" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M108 106 L80 128 L66 160 M108 106 L140 100 L158 90" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-confused':
+      return {
+        viewBox: '0 0 200 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
+  <ellipse cx="100" cy="204" rx="54" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <text x="100" y="38" text-anchor="middle" fill="${c1}" stroke="#FFFFFF" stroke-width="5" paint-order="stroke" font-family="Outfit, sans-serif" font-weight="900" font-size="30">${(label || '?!').slice(0, 4)}</text>
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="100" cy="76" r="22" fill="#FFFFFF"/>
+    <line x1="100" y1="98" x2="100" y2="152"/>
+    <path d="M100 114 L64 122 L50 100"/>
+    <path d="M100 114 L136 122 L150 100"/>
+    <path d="M100 152 L78 198"/>
+    <path d="M100 152 L122 198"/>
+  </g>
+  <circle cx="100" cy="76" r="21" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="93" cy="73" r="2.6" fill="${out}"/>
+  <circle cx="107" cy="73" r="2.6" fill="${out}"/>
+  <path d="M92 85 Q97 81 101 85 Q105 89 109 85" fill="none" stroke="${out}" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="100" y1="97" x2="100" y2="152" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M100 114 L64 122 L50 100 M100 114 L136 122 L150 100" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 152 L78 198 M100 152 L122 198" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-running':
+      return {
+        viewBox: '0 0 230 200',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 200">
+  <ellipse cx="122" cy="184" rx="74" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Speed Lines -->
+  <line x1="16" y1="62" x2="62" y2="62" stroke="${acc}" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="8" y1="84" x2="52" y2="84" stroke="${c2}" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="22" y1="106" x2="58" y2="106" stroke="${c1}" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Stickman Running Halo -->
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="144" cy="46" r="20" fill="#FFFFFF"/>
+    <path d="M140 66 L118 118"/>
+    <path d="M132 82 L166 96 L186 80"/>
+    <path d="M132 82 L94 94 L84 114"/>
+    <path d="M118 118 L156 144 L172 178"/>
+    <path d="M118 118 L78 144 L54 166"/>
+  </g>
+  <!-- Briefcase -->
+  <rect x="64" y="114" width="38" height="28" rx="5" fill="${c1}" stroke="${out}" stroke-width="2.8" transform="rotate(-14 83 128)"/>
+  <circle cx="144" cy="46" r="19" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="141" cy="44" r="2.4" fill="${out}"/>
+  <circle cx="153" cy="44" r="2.4" fill="${out}"/>
+  <path d="M142 53 Q149 58 156 53" fill="none" stroke="${out}" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M140 65 L118 118" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M132 82 L166 96 L186 80 M132 82 L94 94 L84 114" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M118 118 L156 144 L172 178 M118 118 L78 144 L54 166" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-megaphone':
+      return {
+        viewBox: '0 0 240 210',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 210">
+  <ellipse cx="104" cy="194" rx="74" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Acoustic Waves & Shout Tag -->
+  <path d="M168 62 Q182 76 168 90 M182 52 Q202 76 182 100" fill="none" stroke="${acc}" stroke-width="4" stroke-linecap="round"/>
+  <rect x="150" y="18" width="76" height="30" rx="15" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <text x="188" y="38" text-anchor="middle" fill="${out}" font-family="Outfit, sans-serif" font-weight="900" font-size="14">${(label || 'NEWS!').slice(0, 8)}</text>
+  <!-- Stickman Halo -->
+  <g stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="72" cy="58" r="21" fill="#FFFFFF"/>
+    <line x1="72" y1="79" x2="72" y2="136"/>
+    <path d="M72 96 L44 122 L54 138"/>
+    <path d="M72 96 L112 88"/>
+    <path d="M72 136 L52 188"/>
+    <path d="M72 136 L94 188"/>
+  </g>
+  <!-- Megaphone -->
+  <polygon points="104,78 156,56 156,100 104,88" fill="${c1}" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
+  <polygon points="104,78 156,56 156,100 104,88" fill="${c1}" stroke="${out}" stroke-width="3" stroke-linejoin="round"/>
+  <line x1="114" y1="90" x2="114" y2="104" stroke="${out}" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="72" cy="58" r="20" fill="#FFFFFF" stroke="${out}" stroke-width="4.5"/>
+  <circle cx="68" cy="55" r="2.5" fill="${out}"/>
+  <circle cx="80" cy="55" r="2.5" fill="${out}"/>
+  <circle cx="76" cy="66" r="4" fill="${c1}"/>
+  <line x1="72" y1="78" x2="72" y2="136" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M72 96 L44 122 L54 138 M72 96 L112 88" fill="none" stroke="${out}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M72 136 L52 188 M72 136 L94 188" fill="none" stroke="${out}" stroke-width="5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-stick-team':
+      return {
+        viewBox: '0 0 250 210',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 210">
+  <ellipse cx="125" cy="194" rx="94" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- High-five Spark -->
+  <polygon points="125,18 131,32 146,34 135,44 138,58 125,51 112,58 115,44 104,34 119,32" fill="${acc}" stroke="${out}" stroke-width="2.2" stroke-linejoin="round"/>
+  <!-- Two Stickmen Halo -->
+  <g stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="66" cy="70" r="19" fill="#FFFFFF"/>
+    <path d="M68 89 L76 138"/>
+    <path d="M70 104 L42 122"/>
+    <path d="M70 104 L122 52"/>
+    <path d="M76 138 L52 186"/>
+    <path d="M76 138 L94 186"/>
+    <circle cx="184" cy="70" r="19" fill="#FFFFFF"/>
+    <path d="M182 89 L174 138"/>
+    <path d="M180 104 L208 122"/>
+    <path d="M180 104 L128 52"/>
+    <path d="M174 138 L156 186"/>
+    <path d="M174 138 L198 186"/>
+  </g>
+  <!-- Left Stickman -->
+  <circle cx="66" cy="70" r="18" fill="#FFFFFF" stroke="${c1}" stroke-width="4.5"/>
+  <circle cx="63" cy="67" r="2.2" fill="${out}"/>
+  <circle cx="73" cy="67" r="2.2" fill="${out}"/>
+  <path d="M62 76 Q69 81 75 75" fill="none" stroke="${out}" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M68 88 L76 138 M70 104 L42 122 M70 104 L122 52 M76 138 L52 186 M76 138 L94 186" fill="none" stroke="${c1}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Right Stickman -->
+  <circle cx="184" cy="70" r="18" fill="#FFFFFF" stroke="${c2}" stroke-width="4.5"/>
+  <circle cx="177" cy="67" r="2.2" fill="${out}"/>
+  <circle cx="187" cy="67" r="2.2" fill="${out}"/>
+  <path d="M175 75 Q181 81 188 76" fill="none" stroke="${out}" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M182 88 L174 138 M180 104 L208 122 M180 104 L128 52 M174 138 L156 186 M174 138 L198 186" fill="none" stroke="${c2}" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
+      };
+
+    // Cartoon Character Sticker Renderers (14 Poses)
+    case 'char-toon-wave':
+      return {
+        viewBox: '0 0 210 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 230">
+  <ellipse cx="96" cy="214" rx="58" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Speech pill -->
+  <rect x="136" y="20" width="60" height="32" rx="16" fill="${acc}" stroke="${out}" stroke-width="2.8"/>
+  <text x="166" y="42" text-anchor="middle" fill="${out}" font-family="Outfit, sans-serif" font-weight="900" font-size="16">${(label || 'HI!').slice(0, 6)}</text>
+  <!-- Waving arm -->
+  <path d="M126 116 L158 78" stroke="${c1}" stroke-width="18" stroke-linecap="round"/>
+  <path d="M126 116 L158 78" stroke="${out}" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="162" cy="72" r="11" fill="${c2}" stroke="${out}" stroke-width="2.8"/>
+  <!-- Left arm -->
+  <path d="M68 118 L48 154" stroke="${c1}" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="46" cy="158" r="9" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <!-- Legs -->
+  <rect x="74" y="166" width="16" height="44" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="104" y="166" width="16" height="44" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <!-- Hoodie torso -->
+  <rect x="64" y="102" width="66" height="72" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <circle cx="97" cy="134" r="10" fill="${acc}"/>
+  <!-- Head & Hair -->
+  <circle cx="97" cy="66" r="34" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M64 62 C64 34 130 34 130 62 C116 48 80 48 64 62 Z" fill="${out}"/>
+  <circle cx="85" cy="68" r="3.5" fill="${out}"/>
+  <circle cx="109" cy="68" r="3.5" fill="${out}"/>
+  <circle cx="77" cy="76" r="4.5" fill="#FB7185" opacity="0.55"/>
+  <circle cx="117" cy="76" r="4.5" fill="#FB7185" opacity="0.55"/>
+  <path d="M87 80 Q97 90 107 80" fill="none" stroke="${out}" stroke-width="3" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-toon-thumbsup':
+      return {
+        viewBox: '0 0 210 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 230">
+  <ellipse cx="98" cy="214" rx="60" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <polygon points="164,34 169,46 182,48 172,56 175,68 164,62 153,68 156,56 146,48 159,46" fill="${acc}" stroke="${out}" stroke-width="2"/>
+  <rect x="74" y="166" width="16" height="44" rx="8" fill="#334155" stroke="${out}" stroke-width="2.6"/>
+  <rect x="104" y="166" width="16" height="44" rx="8" fill="#334155" stroke="${out}" stroke-width="2.6"/>
+  <rect x="64" y="102" width="66" height="72" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M66 118 L44 148" stroke="${c1}" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="42" cy="152" r="9" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <!-- Thumbs Up Arm -->
+  <path d="M126 120 L158 106" stroke="${c1}" stroke-width="18" stroke-linecap="round"/>
+  <rect x="150" y="94" width="24" height="22" rx="8" fill="${c2}" stroke="${out}" stroke-width="2.8"/>
+  <rect x="156" y="76" width="11" height="22" rx="5.5" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <!-- Head -->
+  <circle cx="97" cy="64" r="34" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M64 56 C70 28 124 28 130 56 C116 44 82 44 64 56 Z" fill="${out}"/>
+  <circle cx="85" cy="66" r="3.5" fill="${out}"/>
+  <path d="M103 66 Q109 61 115 66" fill="none" stroke="${out}" stroke-width="3" stroke-linecap="round"/>
+  <path d="M84 78 Q97 90 110 78 Z" fill="#FFFFFF" stroke="${out}" stroke-width="2.2"/>
+</svg>`,
+      };
+
+    case 'char-toon-presenter':
+      return {
+        viewBox: '0 0 250 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 230">
+  <ellipse cx="125" cy="214" rx="92" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Mini Presentation Board -->
+  <rect x="128" y="34" width="106" height="104" rx="12" fill="#FFFFFF" stroke="${out}" stroke-width="3.2"/>
+  <rect x="142" y="46" width="78" height="20" rx="5" fill="${c1}"/>
+  <text x="181" y="60" text-anchor="middle" fill="#FFFFFF" font-family="Outfit, sans-serif" font-weight="800" font-size="11">${(label || 'DATA').slice(0, 10)}</text>
+  <polyline points="142,118 164,96 184,106 212,78" fill="none" stroke="${acc}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="212" cy="78" r="5" fill="${c1}"/>
+  <!-- Presenter Character -->
+  <rect x="52" y="168" width="15" height="42" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.5"/>
+  <rect x="78" y="168" width="15" height="42" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.5"/>
+  <rect x="42" y="106" width="60" height="68" rx="20" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <polygon points="72,108 66,128 72,138 78,128" fill="#FFFFFF"/>
+  <path d="M98 118 L138 100" stroke="${c1}" stroke-width="15" stroke-linecap="round"/>
+  <line x1="138" y1="100" x2="178" y2="86" stroke="${acc}" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="138" cy="100" r="8" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="72" cy="68" r="32" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M40 62 C44 34 102 34 104 62 C90 48 54 48 40 62 Z" fill="${out}"/>
+  <circle cx="62" cy="70" r="3.2" fill="${out}"/>
+  <circle cx="84" cy="70" r="3.2" fill="${out}"/>
+  <path d="M64 81 Q73 88 82 81" fill="none" stroke="${out}" stroke-width="2.8" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-toon-idea':
+      return {
+        viewBox: '0 0 210 235',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 235">
+  <ellipse cx="105" cy="220" rx="56" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Glowing Bulb -->
+  <path d="M105 14 C86 14 74 27 74 43 C74 55 82 62 87 71 H123 C128 62 136 55 136 43 C136 27 124 14 105 14 Z" fill="${acc}" stroke="${out}" stroke-width="3"/>
+  <rect x="91" y="71" width="28" height="9" rx="4" fill="#94A3B8" stroke="${out}" stroke-width="2.2"/>
+  <path d="M56 42 H66 M144 42 H154 M66 18 L73 25 M144 18 L137 25" stroke="${acc}" stroke-width="4" stroke-linecap="round"/>
+  <!-- Character -->
+  <rect x="82" y="176" width="16" height="40" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="112" y="176" width="16" height="40" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="72" y="120" width="66" height="64" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M134 134 L162 96" stroke="${c1}" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="164" cy="92" r="10" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <line x1="164" y1="84" x2="164" y2="70" stroke="${c2}" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="105" cy="102" r="30" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M75 96 C78 72 132 72 135 96 C122 84 88 84 75 96 Z" fill="${out}"/>
+  <circle cx="94" cy="103" r="3.2" fill="${out}"/>
+  <circle cx="116" cy="103" r="3.2" fill="${out}"/>
+  <circle cx="105" cy="115" r="4.5" fill="${c1}"/>
+</svg>`,
+      };
+
+    case 'char-toon-think':
+      return {
+        viewBox: '0 0 220 230',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230">
+  <ellipse cx="96" cy="214" rx="58" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Thought Cloud -->
+  <circle cx="132" cy="76" r="6" fill="#FFFFFF" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="146" cy="62" r="9" fill="#FFFFFF" stroke="${out}" stroke-width="2.4"/>
+  <path d="M148 48 C136 48 130 38 136 28 C140 16 154 10 168 14 C178 8 194 14 198 26 C208 28 212 42 202 50 C196 56 178 56 164 52 Z" fill="#FFFFFF" stroke="${out}" stroke-width="2.8" stroke-linejoin="round"/>
+  <text x="172" y="41" text-anchor="middle" fill="${acc}" font-family="Outfit, sans-serif" font-weight="900" font-size="22">${(label || '?').slice(0, 4)}</text>
+  <!-- Character -->
+  <rect x="74" y="166" width="16" height="44" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="104" y="166" width="16" height="44" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="64" y="102" width="66" height="72" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <circle cx="97" cy="64" r="34" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M64 56 C68 28 126 28 130 56 C116 44 82 44 64 56 Z" fill="${out}"/>
+  <circle cx="87" cy="64" r="3.4" fill="${out}"/>
+  <circle cx="111" cy="64" r="3.4" fill="${out}"/>
+  <line x1="82" y1="54" x2="94" y2="52" stroke="${out}" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="106" y1="50" x2="118" y2="54" stroke="${out}" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="90" y1="80" x2="106" y2="79" stroke="${out}" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- Chin Hand -->
+  <path d="M126 124 L138 102 L106 94" fill="none" stroke="${c1}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="102" cy="94" r="9" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+</svg>`,
+      };
+
+    case 'char-toon-laptop':
+      return {
+        viewBox: '0 0 230 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 220">
+  <ellipse cx="115" cy="204" rx="88" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Character Torso & Head Behind Laptop -->
+  <rect x="74" y="104" width="82" height="68" rx="24" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <circle cx="115" cy="64" r="34" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M81 58 C84 30 146 30 149 58 C134 44 96 44 81 58 Z" fill="${out}"/>
+  <circle cx="103" cy="66" r="3.4" fill="${out}"/>
+  <circle cx="127" cy="66" r="3.4" fill="${out}"/>
+  <path d="M105 78 Q115 86 125 78" fill="none" stroke="${out}" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- Laptop Lid & Desk -->
+  <rect x="48" y="128" width="134" height="68" rx="10" fill="#E2E8F0" stroke="${out}" stroke-width="3.2"/>
+  <circle cx="115" cy="162" r="11" fill="${acc}" stroke="${out}" stroke-width="2"/>
+  <rect x="26" y="192" width="178" height="12" rx="6" fill="#94A3B8" stroke="${out}" stroke-width="2.6"/>
+  <!-- Hands gripping laptop -->
+  <circle cx="64" cy="136" r="9" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+  <circle cx="166" cy="136" r="9" fill="${c2}" stroke="${out}" stroke-width="2.6"/>
+</svg>`,
+      };
+
+    case 'char-toon-trophy':
+      return {
+        viewBox: '0 0 220 235',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 235">
+  <ellipse cx="110" cy="220" rx="60" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Trophy -->
+  <path d="M84 22 H136 L130 58 C128 72 118 78 110 78 C102 78 92 72 90 58 Z" fill="${acc}" stroke="${out}" stroke-width="2.8"/>
+  <rect x="104" y="76" width="12" height="14" fill="${acc}" stroke="${out}" stroke-width="2.2"/>
+  <rect x="92" y="90" width="36" height="12" rx="4" fill="#78350F" stroke="${out}" stroke-width="2.2"/>
+  <polygon points="44,40 48,50 59,51 50,58 53,68 44,62 35,68 38,58 29,51 40,50" fill="${acc}" stroke="${out}" stroke-width="1.8"/>
+  <polygon points="176,40 180,50 191,51 182,58 185,68 176,62 167,68 170,58 161,51 172,50" fill="${acc}" stroke="${out}" stroke-width="1.8"/>
+  <!-- Arms holding trophy -->
+  <path d="M84 134 L62 104 L88 94" fill="none" stroke="${c1}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M136 134 L158 104 L132 94" fill="none" stroke="${c1}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Character -->
+  <rect x="86" y="178" width="16" height="38" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="118" y="178" width="16" height="38" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="78" y="124" width="64" height="62" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <circle cx="110" cy="112" r="28" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M82 106 C86 82 134 82 138 106 C126 94 94 94 82 106 Z" fill="${out}"/>
+  <circle cx="99" cy="114" r="3" fill="${out}"/>
+  <circle cx="121" cy="114" r="3" fill="${out}"/>
+  <path d="M100 124 Q110 132 120 124" fill="none" stroke="${out}" stroke-width="2.8" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-toon-rocket':
+      return {
+        viewBox: '0 0 220 235',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 235">
+  <ellipse cx="110" cy="220" rx="64" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Rocket Body Behind/Beside Hero -->
+  <g transform="rotate(-14 148 112)">
+    <path d="M148 28 C166 56 172 96 168 144 H128 C124 96 130 56 148 28 Z" fill="#F8FAFC" stroke="${out}" stroke-width="3"/>
+    <path d="M148 28 C158 44 164 58 166 72 H130 C132 58 138 44 148 28 Z" fill="${acc}" stroke="${out}" stroke-width="2.6"/>
+    <circle cx="148" cy="96" r="12" fill="#BAE6FD" stroke="${out}" stroke-width="2.5"/>
+    <polygon points="128,122 110,148 128,144" fill="${acc}" stroke="${out}" stroke-width="2.4"/>
+    <polygon points="168,122 186,148 168,144" fill="${acc}" stroke="${out}" stroke-width="2.4"/>
+    <path d="M136 146 Q148 184 160 146 Z" fill="#FACC15" stroke="${acc}" stroke-width="2"/>
+  </g>
+  <!-- Hero Character -->
+  <rect x="64" y="170" width="15" height="44" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.5"/>
+  <rect x="92" y="170" width="15" height="44" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.5"/>
+  <rect x="54" y="110" width="62" height="66" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M112 124 L138 114" stroke="${c1}" stroke-width="15" stroke-linecap="round"/>
+  <circle cx="140" cy="114" r="9" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="85" cy="74" r="32" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <rect x="64" y="62" width="42" height="16" rx="8" fill="${acc}" opacity="0.82" stroke="${out}" stroke-width="2.4"/>
+  <path d="M74 88 Q85 96 96 88" fill="none" stroke="${out}" stroke-width="2.8" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-toon-megaphone':
+      return {
+        viewBox: '0 0 240 225',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 225">
+  <ellipse cx="104" cy="210" rx="68" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Announcement Tag -->
+  <rect x="148" y="24" width="76" height="32" rx="16" fill="${acc}" stroke="${out}" stroke-width="2.8"/>
+  <text x="186" y="46" text-anchor="middle" fill="${out}" font-family="Outfit, sans-serif" font-weight="900" font-size="14">${(label || 'NEW!').slice(0, 8)}</text>
+  <path d="M174 72 Q190 90 174 108 M192 60 Q212 90 192 120" fill="none" stroke="${acc}" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Character -->
+  <rect x="64" y="164" width="16" height="42" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="94" y="164" width="16" height="42" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="54" y="102" width="66" height="68" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M114 114 L132 102" stroke="${c1}" stroke-width="15" stroke-linecap="round"/>
+  <polygon points="122,92 170,68 170,118 122,102" fill="${acc}" stroke="${out}" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="87" cy="64" r="32" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M55 58 C59 30 115 30 119 58 C105 44 69 44 55 58 Z" fill="${out}"/>
+  <circle cx="78" cy="66" r="3.4" fill="${out}"/>
+  <circle cx="100" cy="66" r="3.4" fill="${out}"/>
+  <circle cx="92" cy="78" r="5" fill="${c1}"/>
+</svg>`,
+      };
+
+    case 'char-toon-reading':
+      return {
+        viewBox: '0 0 220 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <ellipse cx="110" cy="204" rx="70" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <rect x="74" y="104" width="72" height="66" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <circle cx="110" cy="64" r="34" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M76 58 C80 30 140 30 144 58 C130 44 90 44 76 58 Z" fill="${out}"/>
+  <!-- Glasses -->
+  <circle cx="96" cy="66" r="9" fill="#FFFFFF" fill-opacity="0.45" stroke="${out}" stroke-width="2.6"/>
+  <circle cx="124" cy="66" r="9" fill="#FFFFFF" fill-opacity="0.45" stroke="${out}" stroke-width="2.6"/>
+  <line x1="105" y1="66" x2="115" y2="66" stroke="${out}" stroke-width="2.6"/>
+  <circle cx="96" cy="66" r="2.8" fill="${out}"/>
+  <circle cx="124" cy="66" r="2.8" fill="${out}"/>
+  <path d="M102 82 Q110 88 118 82" fill="none" stroke="${out}" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Open Book Held Up -->
+  <path d="M48 134 C72 126 96 130 110 140 C124 130 148 126 172 134 V192 C148 184 124 188 110 198 C96 188 72 184 48 192 Z" fill="#FFFBEB" stroke="${out}" stroke-width="3" stroke-linejoin="round"/>
+  <line x1="110" y1="140" x2="110" y2="198" stroke="${out}" stroke-width="2.6"/>
+  <rect x="44" y="186" width="132" height="12" rx="4" fill="${acc}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="52" cy="160" r="9" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="168" cy="160" r="9" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+</svg>`,
+      };
+
+    case 'char-toon-graduate':
+      return {
+        viewBox: '0 0 220 235',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 235">
+  <ellipse cx="106" cy="220" rx="62" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <rect x="80" y="170" width="16" height="44" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <rect x="114" y="170" width="16" height="44" rx="8" fill="#1E293B" stroke="${out}" stroke-width="2.6"/>
+  <!-- Gown -->
+  <path d="M70 112 H140 L152 184 H58 Z" fill="${c1}" stroke="${out}" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="105,112 92,138 105,146 118,138" fill="${acc}" stroke="${out}" stroke-width="2"/>
+  <!-- Diploma in hand -->
+  <rect x="138" y="128" width="54" height="18" rx="7" fill="#FEF3C7" stroke="${out}" stroke-width="2.6" transform="rotate(-24 165 137)"/>
+  <rect x="160" y="124" width="10" height="24" rx="2" fill="#EF4444" transform="rotate(-24 165 136)"/>
+  <!-- Head + Mortarboard Cap -->
+  <circle cx="105" cy="76" r="32" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <circle cx="94" cy="78" r="3.4" fill="${out}"/>
+  <circle cx="116" cy="78" r="3.4" fill="${out}"/>
+  <path d="M94 90 Q105 99 116 90" fill="none" stroke="${out}" stroke-width="2.8" stroke-linecap="round"/>
+  <polygon points="105,14 156,36 105,58 54,36" fill="${c1}" stroke="${out}" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M78 46 V60 C78 66 132 66 132 60 V46 Z" fill="${c1}" stroke="${out}" stroke-width="2.4"/>
+  <path d="M105 36 L146 48 V74" fill="none" stroke="${acc}" stroke-width="3.5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-toon-teamwork':
+      return {
+        viewBox: '0 0 260 215',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 215">
+  <ellipse cx="130" cy="200" rx="98" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Fist bump burst -->
+  <polygon points="130,84 135,96 148,98 138,106 141,118 130,111 119,118 122,106 112,98 125,96" fill="#FACC15" stroke="${out}" stroke-width="2"/>
+  <!-- Left Character -->
+  <rect x="46" y="162" width="15" height="34" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.4"/>
+  <rect x="70" y="162" width="15" height="34" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.4"/>
+  <rect x="38" y="106" width="54" height="62" rx="20" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M88 122 L116 118" stroke="${c1}" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="120" cy="118" r="9" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="65" cy="70" r="28" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M37 64 C40 40 90 40 93 64 C80 52 50 52 37 64 Z" fill="${out}"/>
+  <circle cx="57" cy="72" r="3" fill="${out}"/>
+  <circle cx="75" cy="72" r="3" fill="${out}"/>
+  <path d="M58 82 Q66 88 74 82" fill="none" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Right Character -->
+  <rect x="175" y="162" width="15" height="34" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.4"/>
+  <rect x="199" y="162" width="15" height="34" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.4"/>
+  <rect x="168" y="106" width="54" height="62" rx="20" fill="${acc}" stroke="${out}" stroke-width="3"/>
+  <path d="M172 122 L144 118" stroke="${acc}" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="140" cy="118" r="9" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="195" cy="70" r="28" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <circle cx="195" cy="40" r="11" fill="${out}"/>
+  <path d="M167 64 C170 40 220 40 223 64 C210 52 180 52 167 64 Z" fill="${out}"/>
+  <circle cx="185" cy="72" r="3" fill="${out}"/>
+  <circle cx="203" cy="72" r="3" fill="${out}"/>
+  <path d="M186 82 Q194 88 202 82" fill="none" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-toon-meditate':
+      return {
+        viewBox: '0 0 220 220',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <ellipse cx="110" cy="202" rx="66" ry="9" fill="#94A3B8" opacity="0.25"/>
+  <!-- Calm Aura -->
+  <circle cx="110" cy="108" r="78" fill="${acc}" fill-opacity="0.18" stroke="${acc}" stroke-width="2.5" stroke-dasharray="8 6"/>
+  <!-- Crossed Legs -->
+  <ellipse cx="110" cy="172" rx="54" ry="18" fill="#1E293B" stroke="${out}" stroke-width="3"/>
+  <!-- Torso & Arms -->
+  <rect x="78" y="102" width="64" height="64" rx="22" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M80 122 L54 152 L72 164" fill="none" stroke="${c1}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M140 122 L166 152 L148 164" fill="none" stroke="${c1}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="72" cy="164" r="8" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="148" cy="164" r="8" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <!-- Calm Head -->
+  <circle cx="110" cy="64" r="32" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M78 58 C82 30 138 30 142 58 C128 44 92 44 78 58 Z" fill="${out}"/>
+  <path d="M92 66 Q98 71 104 66 M116 66 Q122 71 128 66" fill="none" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M102 80 Q110 86 118 80" fill="none" stroke="${out}" stroke-width="2.5" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    case 'char-toon-speech':
+      return {
+        viewBox: '0 0 240 225',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 225">
+  <ellipse cx="116" cy="210" rx="82" ry="10" fill="#94A3B8" opacity="0.25"/>
+  <!-- Speech Callout Bubble -->
+  <path d="M108 24 H214 A18 18 0 0 1 232 42 V88 A18 18 0 0 1 214 106 H142 L118 124 L126 106 H108 A18 18 0 0 1 90 88 V42 A18 18 0 0 1 108 24 Z" fill="${acc}" stroke="${out}" stroke-width="3.2" stroke-linejoin="round"/>
+  <text x="161" y="74" text-anchor="middle" fill="${out}" font-family="Outfit, sans-serif" font-weight="900" font-size="24">${(label || 'NOTE!').slice(0, 10)}</text>
+  <!-- Character Peeking & Pointing to Bubble -->
+  <rect x="52" y="164" width="15" height="40" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.5"/>
+  <rect x="80" y="164" width="15" height="40" rx="7" fill="#1E293B" stroke="${out}" stroke-width="2.5"/>
+  <rect x="42" y="110" width="60" height="60" rx="20" fill="${c1}" stroke="${out}" stroke-width="3"/>
+  <path d="M98 126 L124 114" stroke="${c1}" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="126" cy="114" r="8" fill="${c2}" stroke="${out}" stroke-width="2.4"/>
+  <circle cx="72" cy="74" r="30" fill="${c2}" stroke="${out}" stroke-width="3"/>
+  <path d="M42 68 C46 42 98 42 102 68 C88 54 56 54 42 68 Z" fill="${out}"/>
+  <circle cx="62" cy="76" r="3.2" fill="${out}"/>
+  <circle cx="84" cy="76" r="3.2" fill="${out}"/>
+  <path d="M64 87 Q73 94 82 87" fill="none" stroke="${out}" stroke-width="2.6" stroke-linecap="round"/>
+</svg>`,
+      };
+
+    default: {
+      const ext = renderExtendedDesignSvg(kind, c1, c2, acc, out, label, uid);
+      if (ext) return ext;
+      return {
+        viewBox: '0 0 180 180',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><circle cx="90" cy="90" r="76" fill="${c1}" stroke="${out}" stroke-width="3"/></svg>`,
+      };
+    }
   }
 }
 
-export interface IconCatalogDef {
-  id: string;
-  label: string;
-  category: 'Social Platforms' | 'Creative & UI' | 'Awards & Status' | 'Media & Tech';
-  viewBox?: string;
-  fillRule?: 'evenodd' | 'nonzero';
-  mode: 'stroke' | 'fill';
-  paths: string[];
-}
-
-export const ICON_CATALOG: IconCatalogDef[] = [
-  // 16 Social Platforms
-  {
-    id: 'social-instagram',
-    label: 'Instagram',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z',
-      'M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z',
-      'M17.5 6.5h.01',
-    ],
-  },
-  {
-    id: 'social-tiktok',
-    label: 'TikTok',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: ['M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5'],
-  },
-  {
-    id: 'social-youtube',
-    label: 'YouTube',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z',
-      'M9.75 15.02 15.5 12 9.75 8.98v6.04z',
-    ],
-  },
-  {
-    id: 'social-x',
-    label: 'X / Twitter',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: ['M4 4l16 16', 'M20 4L4 20', 'M4 4h4l12 16h-4'],
-  },
-  {
-    id: 'social-facebook',
-    label: 'Facebook',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: ['M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z'],
-  },
-  {
-    id: 'social-linkedin',
-    label: 'LinkedIn',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z',
-      'M2 9h4v12H2z',
-      'M4 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',
-    ],
-  },
-  {
-    id: 'social-discord',
-    label: 'Discord',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M9 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z',
-      'M15 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z',
-      'M7.5 7.5c3.5-1 5.5-1 9 0',
-      'M7 16.5c3.5 1 6.5 1 10 0',
-      'M15.5 17c0 1 1.5 3 2 3 1.5 0 2.8-1.7 3.5-3.5 0-4-1.5-8.5-3.5-10.5-1.3-.7-2.7-1-4-1l-.5 1.5',
-      'M8.5 17c0 1-1.5 3-2 3-1.5 0-2.8-1.7-3.5-3.5 0-4 1.5-8.5 3.5-10.5 1.3-.7 2.7-1 4-1l.5 1.5',
-    ],
-  },
-  {
-    id: 'social-twitch',
-    label: 'Twitch',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: ['M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7'],
-  },
-  {
-    id: 'social-spotify',
-    label: 'Spotify',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z',
-      'M7.5 9.5c3-.8 6.5-.6 9.5.6',
-      'M8 12.8c2.6-.6 5.4-.4 7.8.6',
-      'M8.8 15.8c2-.4 4.2-.2 6 .5',
-    ],
-  },
-  {
-    id: 'social-github',
-    label: 'GitHub',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22',
-    ],
-  },
-  {
-    id: 'social-pinterest',
-    label: 'Pinterest',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z',
-      'M8 20l4-9',
-      'M10.7 14c.437 1.263 1.43 2 2.55 2 2.071 0 3.75-1.554 3.75-4a5 5 0 1 0-9.7 1.7',
-    ],
-  },
-  {
-    id: 'social-threads',
-    label: 'Threads',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M19 12a7 7 0 1 0-7 7c2.8 0 5-1.2 6-3',
-      'M15.5 11.5c0-2-1.5-3.5-3.5-3.5s-3.5 1.5-3.5 3.5S10 15 12 15s3.5-1.5 3.5-3.5zm0 0v2a2 2 0 0 0 4 0v-1.5',
-    ],
-  },
-  {
-    id: 'social-whatsapp',
-    label: 'WhatsApp',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21',
-      'M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1',
-    ],
-  },
-  {
-    id: 'social-telegram',
-    label: 'Telegram',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: ['M21 5L2 12.5l7 1.5M21 5l-2.5 15L9 14m12-9L9 14m0 0v5l3.5-3'],
-  },
-  {
-    id: 'social-snapchat',
-    label: 'Snapchat',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M12 3a5 5 0 0 0-5 5v3c-1 .4-2 .5-2 1.3s1 .9 1.5 1.1c-.4 1.4-2 2.4-3.5 2.8.8.8 2 1.2 3 1.4.4.8 1.2 1.4 2 1.4 1.3 0 2.2-.8 4-.8s2.7.8 4 .8c.8 0 1.6-.6 2-1.4 1-.2 2.2-.6 3-1.4-1.5-.4-3.1-1.4-3.5-2.8.5-.2 1.5-.3 1.5-1.1s-1-.9-2-1.3V8a5 5 0 0 0-5-5z',
-    ],
-  },
-  {
-    id: 'social-dribbble',
-    label: 'Dribbble',
-    category: 'Social Platforms',
-    mode: 'stroke',
-    paths: [
-      'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z',
-      'M19.13 5.09C15.22 9.14 10 10.44 2.25 10.94',
-      'M21.75 12.84c-6.62-1.41-12.14 1-16.38 6.32',
-      'M8.56 2.75c4.37 6 6 9.42 8 17.72',
-    ],
-  },
-
-  // 38 Creative, Award & UI Symbols (Total: 54 icons)
-  {
-    id: 'star',
-    label: 'Star',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: ['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'],
-  },
-  {
-    id: 'sparkles',
-    label: 'Sparkles',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: [
-      'M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3z',
-      'M5 3v4M3 5h4M19 17v4M17 19h4',
-    ],
-  },
-  {
-    id: 'heart',
-    label: 'Heart',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'],
-  },
-  {
-    id: 'flame',
-    label: 'Flame',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: ['M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z'],
-  },
-  {
-    id: 'zap',
-    label: 'Bolt',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M13 2L3 14h9l-1 8 10-12h-9l1-8z'],
-  },
-  {
-    id: 'crown',
-    label: 'Crown',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: ['M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14'],
-  },
-  {
-    id: 'award',
-    label: 'Award',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: ['M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12z', 'M8.21 13.89L7 23l5-3 5 3-1.21-9.12'],
-  },
-  {
-    id: 'trophy',
-    label: 'Trophy',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: [
-      'M6 9H4.5a2.5 2.5 0 0 1 0-5H6',
-      'M18 9h1.5a2.5 2.5 0 0 0 0-5H18',
-      'M4 22h16',
-      'M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22',
-      'M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22',
-      'M18 2H6v7a6 6 0 0 0 12 0V2Z',
-    ],
-  },
-  {
-    id: 'check-badge',
-    label: 'Verified Badge',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: [
-      'M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z',
-      'M9 12l2 2 4-4',
-    ],
-  },
-  {
-    id: 'bell',
-    label: 'Bell',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9', 'M13.73 21a2 2 0 0 1-3.46 0'],
-  },
-  {
-    id: 'megaphone',
-    label: 'Megaphone',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M3 11l18-5v12L3 14v-3z', 'M11.6 16.8a3 3 0 1 1-5.8-1.6'],
-  },
-  {
-    id: 'music',
-    label: 'Music Note',
-    category: 'Media & Tech',
-    mode: 'stroke',
-    paths: ['M9 18V5l12-2v13', 'M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0z', 'M21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z'],
-  },
-  {
-    id: 'headphones',
-    label: 'Headphones',
-    category: 'Media & Tech',
-    mode: 'stroke',
-    paths: ['M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3'],
-  },
-  {
-    id: 'camera',
-    label: 'Camera',
-    category: 'Media & Tech',
-    mode: 'stroke',
-    paths: [
-      'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z',
-      'M12 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
-    ],
-  },
-  {
-    id: 'film',
-    label: 'Film Frame',
-    category: 'Media & Tech',
-    mode: 'stroke',
-    paths: [
-      'M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z',
-      'M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5',
-    ],
-  },
-  {
-    id: 'mic',
-    label: 'Microphone',
-    category: 'Media & Tech',
-    mode: 'stroke',
-    paths: ['M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z', 'M19 10v2a7 7 0 0 1-14 0v-2', 'M12 19v3'],
-  },
-  {
-    id: 'globe',
-    label: 'Globe',
-    category: 'Media & Tech',
-    mode: 'stroke',
-    paths: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z', 'M2 12h20', 'M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'],
-  },
-  {
-    id: 'map-pin',
-    label: 'Location Pin',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z', 'M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z'],
-  },
-  {
-    id: 'calendar',
-    label: 'Calendar',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z', 'M16 2v4M8 2v4M3 10h18'],
-  },
-  {
-    id: 'clock',
-    label: 'Clock',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z', 'M12 6v6l4 2'],
-  },
-  {
-    id: 'mail',
-    label: 'Envelope',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z', 'M22 6l-10 7L2 6'],
-  },
-  {
-    id: 'send',
-    label: 'Paper Plane',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M22 2L11 13', 'M22 2l-7 20-4-9-9-4 20-7z'],
-  },
-  {
-    id: 'link',
-    label: 'Chain Link',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71', 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'],
-  },
-  {
-    id: 'qr-code',
-    label: 'QR Matrix',
-    category: 'Media & Tech',
-    mode: 'stroke',
-    paths: [
-      'M3 3h5v5H3zM16 3h5v5h-5zM3 16h5v5H3z',
-      'M21 16h-3a2 2 0 0 0-2 2v3',
-      'M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1',
-    ],
-  },
-  {
-    id: 'lock',
-    label: 'Lock',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z', 'M7 11V7a5 5 0 0 1 10 0v4'],
-  },
-  {
-    id: 'shield',
-    label: 'Shield',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', 'M9 12l2 2 4-4'],
-  },
-  {
-    id: 'rocket',
-    label: 'Rocket',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: [
-      'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z',
-      'M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z',
-      'M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5',
-    ],
-  },
-  {
-    id: 'compass',
-    label: 'Compass',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z', 'M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z'],
-  },
-  {
-    id: 'target',
-    label: 'Target',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z', 'M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z', 'M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z'],
-  },
-  {
-    id: 'trending-up',
-    label: 'Growth Curve',
-    category: 'Awards & Status',
-    mode: 'stroke',
-    paths: ['M22 7l-8.5 8.5-5-5L2 17', 'M16 7h6v6'],
-  },
-  {
-    id: 'gift',
-    label: 'Gift Box',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: [
-      'M20 12v10H4V12M2 7h20v5H2zM12 22V7',
-      'M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z',
-      'M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z',
-    ],
-  },
-  {
-    id: 'party',
-    label: 'Confetti Cone',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M5.8 11.3L2 22l10.7-3.79', 'M4 3h.01M22 8h.01M15 2h.01M22 20h.01', 'M14 10l-4.5 4.5M9 5l5 5'],
-  },
-  {
-    id: 'sun',
-    label: 'Sunburst',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: [
-      'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
-      'M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41',
-    ],
-  },
-  {
-    id: 'moon',
-    label: 'Crescent Moon',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
-  },
-  {
-    id: 'cloud',
-    label: 'Cloud',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z'],
-  },
-  {
-    id: 'leaf',
-    label: 'Botanical Leaf',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z', 'M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'],
-  },
-  {
-    id: 'coffee',
-    label: 'Coffee Cup',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M17 8h1a4 4 0 1 1 0 8h-1', 'M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z', 'M6 2v2M10 2v2M14 2v2'],
-  },
-  {
-    id: 'smile',
-    label: 'Smiley Face',
-    category: 'Creative & UI',
-    mode: 'stroke',
-    paths: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z', 'M8 14s1.5 2 4 2 4-2 4-2', 'M9 9h.01M15 9h.01'],
-  },
-];
-
-export function renderIconSvgString(iconName: string, color: string, strokeWidth = 1.9): string {
-  const def = ICON_CATALOG.find((ic) => ic.id === iconName || ic.label.toLowerCase() === iconName.toLowerCase());
-  const paths = def?.paths || [
-    'M12 2l9 4.5v11L12 22l-9-4.5v-11L12 2z',
-    'M12 22V11',
-    'M21 6.5L12 11 3 6.5',
-  ];
-  const pathEls = paths
-    .map((d) =>
-      def?.mode === 'fill'
-        ? `<path d="${d}" fill="${escapeXml(color)}"/>`
-        : `<path d="${d}" fill="none" stroke="${escapeXml(color)}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>`
-    )
-    .join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${pathEls}</svg>`;
+function c3Fallback(v: string): string {
+  return v || '#F59E0B';
 }
 
 export interface ShapeCatalogItem {
@@ -1772,3 +3181,113 @@ export function renderSlideBackgroundSvgString(slide: Slide, width: number, heig
   ${patternEl}
 </svg>`;
 }
+
+export function renderRetroOsDialogSvgString(
+  props: Record<string, unknown>,
+  rawUid: string,
+  width = 420,
+  height = 220
+): string {
+  const uid = rawUid.replace(/[^a-zA-Z0-9_-]/g, '') || 'osdlg';
+  const osStyle = String(props.osStyle || 'win98-classic');
+  const variant = String(props.dialogVariant || 'error');
+  const title = escapeXml(String(props.title || 'SYSTEM ERROR'));
+  const message = String(props.message || 'ERROR_NOT_ENOUGH_MEMORY');
+  const primaryBtn = escapeXml(String(props.primaryButton || 'OK'));
+  const secondaryBtn = escapeXml(String(props.secondaryButton || '').trim());
+  const progress = Math.max(0, Math.min(100, Number(props.progressPercent ?? 55)));
+  const titleBarColor = escapeXml(
+    String(props.titleBarColor || (osStyle === 'winxp-luna' ? '#0054E3' : '#000080'))
+  );
+  const bodyBg = escapeXml(
+    String(props.bodyBgColor || (osStyle === 'winxp-luna' ? '#ECE9D8' : '#C0C0C0'))
+  );
+  const textColor = escapeXml(String(props.textColor || '#111827'));
+
+  const w = Math.max(240, Math.round(width));
+  const h = Math.max(140, Math.round(height));
+  const isXp = osStyle === 'winxp-luna';
+  const hdrH = 30;
+  const rx = isXp ? 8 : 0;
+
+  let badgeSvg = '';
+  const iconCx = 56;
+  const iconCy = Math.round(hdrH + (h - hdrH - 52) / 2);
+  if (variant === 'warning') {
+    badgeSvg = `
+      <polygon points="${iconCx},${iconCy - 20} ${iconCx + 22},${iconCy + 18} ${iconCx - 22},${iconCy + 18}" fill="#FACC15" stroke="#111827" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="${iconCx - 2}" y="${iconCy - 8}" width="4" height="14" rx="1" fill="#111827"/>
+      <circle cx="${iconCx}" cy="${iconCy + 12}" r="2.2" fill="#111827"/>
+    `;
+  } else if (variant === 'success') {
+    badgeSvg = `
+      <circle cx="${iconCx}" cy="${iconCy}" r="20" fill="#16A34A" stroke="#14532D" stroke-width="1.5"/>
+      <path d="M${iconCx - 9} ${iconCy} L${iconCx - 2} ${iconCy + 7} L${iconCx + 10} ${iconCy - 7}" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    `;
+  } else if (variant === 'info') {
+    badgeSvg = `
+      <circle cx="${iconCx}" cy="${iconCy}" r="20" fill="#2563EB" stroke="#1E3A8A" stroke-width="1.5"/>
+      <circle cx="${iconCx}" cy="${iconCy - 8}" r="2.4" fill="#FFFFFF"/>
+      <rect x="${iconCx - 2.2}" y="${iconCy - 2}" width="4.4" height="13" rx="1.5" fill="#FFFFFF"/>
+    `;
+  } else if (variant === 'progress') {
+    const barW = Math.max(120, w - 64);
+    const fillW = Math.round((barW - 4) * (progress / 100));
+    badgeSvg = `
+      <rect x="32" y="${iconCy + 14}" width="${barW}" height="18" fill="#FFFFFF" stroke="#808080" stroke-width="1.5"/>
+      <rect x="34" y="${iconCy + 16}" width="${fillW}" height="14" fill="${titleBarColor}"/>
+    `;
+  } else {
+    badgeSvg = `
+      <circle cx="${iconCx}" cy="${iconCy}" r="20" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.5"/>
+      <path d="M${iconCx - 8} ${iconCy - 8} L${iconCx + 8} ${iconCy + 8} M${iconCx + 8} ${iconCy - 8} L${iconCx - 8} ${iconCy + 8}" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+    `;
+  }
+
+  const msgLines = message.split('\n').slice(0, 4);
+  const textX = variant === 'progress' ? 32 : 96;
+  const startTextY = variant === 'progress' ? hdrH + 34 : iconCy - ((msgLines.length - 1) * 9) + 4;
+  const msgSvg = msgLines
+    .map(
+      (line, idx) =>
+        `<text x="${textX}" y="${startTextY + idx * 18}" fill="${textColor}" font-family="sans-serif" font-size="13" font-weight="500">${escapeXml(line)}</text>`
+    )
+    .join('');
+
+  const btnW = 92;
+  const btnH = 28;
+  const btnY = h - 42;
+  const hasSecondary = secondaryBtn.length > 0;
+  const btn1X = hasSecondary ? Math.round(w / 2 - btnW - 8) : Math.round((w - btnW) / 2);
+  const btn2X = Math.round(w / 2 + 8);
+
+  const renderBtn = (bx: number, label: string) => `
+    <rect x="${bx}" y="${btnY}" width="${btnW}" height="${btnH}" rx="${isXp ? 4 : 0}" fill="${isXp ? '#F8FAFC' : bodyBg}" stroke="#404040" stroke-width="1.5"/>
+    <line x1="${bx + 1}" y1="${btnY + 1}" x2="${bx + btnW - 1}" y2="${btnY + 1}" stroke="#FFFFFF" stroke-width="1.5"/>
+    <line x1="${bx + 1}" y1="${btnY + 1}" x2="${bx + 1}" y2="${btnY + btnH - 1}" stroke="#FFFFFF" stroke-width="1.5"/>
+    <text x="${bx + btnW / 2}" y="${btnY + 18}" text-anchor="middle" fill="${textColor}" font-family="sans-serif" font-size="12" font-weight="600">${label}</text>
+  `;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">
+  <defs>
+    <linearGradient id="${uid}-hdr" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${titleBarColor}"/>
+      <stop offset="100%" stop-color="${isXp ? '#3B8CF7' : '#1084D0'}"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="${w}" height="${h}" rx="${rx}" fill="${bodyBg}" stroke="${isXp ? '#003C9D' : '#404040'}" stroke-width="2"/>
+  <line x1="2" y1="2" x2="${w - 2}" y2="2" stroke="#FFFFFF" stroke-width="2"/>
+  <line x1="2" y1="2" x2="2" y2="${h - 2}" stroke="#FFFFFF" stroke-width="2"/>
+  <rect x="4" y="4" width="${w - 8}" height="${hdrH - 4}" rx="${isXp ? 4 : 0}" fill="url(#${uid}-hdr)"/>
+  <text x="14" y="22" fill="#FFFFFF" font-family="sans-serif" font-size="12.5" font-weight="700">${title}</text>
+  <rect x="${w - 50}" y="8" width="16" height="16" rx="${isXp ? 2 : 0}" fill="${isXp ? '#2563EB' : bodyBg}" stroke="${isXp ? '#FFFFFF' : '#404040'}" stroke-width="1"/>
+  <line x1="${w - 46}" y1="19" x2="${w - 38}" y2="19" stroke="${isXp ? '#FFFFFF' : '#111827'}" stroke-width="2"/>
+  <rect x="${w - 30}" y="8" width="18" height="16" rx="${isXp ? 2 : 0}" fill="${isXp ? '#DC2626' : bodyBg}" stroke="${isXp ? '#FFFFFF' : '#404040'}" stroke-width="1"/>
+  <path d="M${w - 25} 12 L${w - 17} 20 M${w - 17} 12 L${w - 25} 20" stroke="${isXp ? '#FFFFFF' : '#111827'}" stroke-width="1.8" stroke-linecap="round"/>
+  ${badgeSvg}
+  ${msgSvg}
+  ${renderBtn(btn1X, primaryBtn)}
+  ${hasSecondary ? renderBtn(btn2X, secondaryBtn) : ''}
+</svg>`;
+}
+

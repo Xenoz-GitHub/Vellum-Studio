@@ -229,9 +229,9 @@ export function DashboardPage() {
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto">
             {profile?.gamificationEnabled && (
-              <div className="flex items-center gap-4 px-3.5 py-2 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-canvas)] text-xs tabular-nums">
+              <div className="flex items-center justify-between sm:justify-start gap-4 px-3.5 py-2 rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)] text-xs tabular-nums">
                 <span className="flex items-center gap-1.5 font-medium">
                   <Flame className="w-4 h-4 text-[var(--accent)]" />
                   {profile.currentStreak}d streak
@@ -241,27 +241,29 @@ export function DashboardPage() {
               </div>
             )}
 
-            <label className="inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)] text-sm font-medium cursor-pointer transition-colors">
-              <Upload className="w-4 h-4" />
-              <span aria-hidden="true">{importing ? 'Importing...' : 'Import PPTX / PDF'}</span>
-              <input
-                type="file"
-                aria-label="Import PPTX, PDF, or DOCX presentation file"
-                accept=".pptx,.pdf,.docx,.txt,.md"
-                onChange={handleImportFile}
-                disabled={importing}
-                className="sr-only"
-              />
-            </label>
+            <div className="grid grid-cols-2 sm:flex items-center gap-2.5">
+              <label className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)] text-xs sm:text-sm font-medium cursor-pointer transition-colors whitespace-nowrap">
+                <Upload className="w-4 h-4 shrink-0" />
+                <span aria-hidden="true" className="truncate">{importing ? 'Importing...' : 'Import PPTX / PDF'}</span>
+                <input
+                  type="file"
+                  aria-label="Import PPTX, PDF, or DOCX presentation file"
+                  accept=".pptx,.pdf,.docx,.txt,.md"
+                  onChange={handleImportFile}
+                  disabled={importing}
+                  className="sr-only"
+                />
+              </label>
 
-            <button
-              type="button"
-              onClick={handleCreateBlank}
-              className="inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)] text-sm font-medium transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Blank Deck
-            </button>
+              <button
+                type="button"
+                onClick={handleCreateBlank}
+                className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)] text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4 shrink-0" />
+                Blank Deck
+              </button>
+            </div>
           </div>
         </div>
 
@@ -296,48 +298,33 @@ export function DashboardPage() {
       )}
 
       {/* Filter & Search Toolbar */}
-      <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-[var(--bg-subtle)]">
-            {(
-              [
-                ['all', 'All Decks'],
-                ['favorites', 'Favorites'],
-                ['drafts', 'Drafts'],
-                ['imported', 'Imported'],
-              ] as const
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setFilterTab(key)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
-                  filterTab === key
-                    ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <select
-            aria-label="Filter by category"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-xs font-medium"
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat === 'All' ? 'All Categories' : cat}
-              </option>
-            ))}
-          </select>
+      <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="grid grid-cols-4 sm:inline-flex w-full sm:w-auto items-center gap-1 p-1 rounded-xl bg-[var(--bg-subtle)] shrink-0">
+          {(
+            [
+              ['all', 'All Decks'],
+              ['favorites', 'Favorites'],
+              ['drafts', 'Drafts'],
+              ['imported', 'Imported'],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilterTab(key)}
+              className={`w-full sm:w-auto text-center px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap truncate ${
+                filterTab === key
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-semibold'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 lg:flex-1 lg:justify-end">
+          <div className="relative w-full sm:flex-1 lg:max-w-xs">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               type="search"
@@ -345,18 +332,34 @@ export function DashboardPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search decks..."
               aria-label="Search presentations"
-              className="w-full h-10 pl-9 pr-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-sm focus:outline-none focus:border-[var(--accent)]"
+              className="w-full h-10 pl-9 pr-3 rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-sm focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
-          <select
-            aria-label="Sort presentations"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'updated' | 'title')}
-            className="h-10 px-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-xs font-medium"
-          >
-            <option value="updated">Recently Updated</option>
-            <option value="title">Title A–Z</option>
-          </select>
+
+          <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center shrink-0">
+            <select
+              aria-label="Filter by category"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full sm:w-auto h-10 px-3 rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-xs font-medium"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat === 'All' ? 'All Categories' : cat}
+                </option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Sort presentations"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'updated' | 'title')}
+              className="w-full sm:w-auto h-10 px-3 rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-xs font-medium"
+            >
+              <option value="updated">Recently Updated</option>
+              <option value="title">Title A–Z</option>
+            </select>
+          </div>
         </div>
       </section>
 

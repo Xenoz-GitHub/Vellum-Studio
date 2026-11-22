@@ -13,11 +13,14 @@ import {
   renderCutoutIllustrationSvg,
   renderFlipCalendarSvgString,
   renderIconSvgString,
+  renderRetroOsDialogSvgString,
   renderRetroTvSvgString,
   renderShapeSvgString,
   renderSlideBackgroundSvgString,
   renderY2kStickerSvgString,
 } from './svg-cutout-renderer';
+import { renderPhotoFrameSvgString } from './frame-catalog';
+import { renderStyledTextSvgString } from './text-effects';
 
 function stripHash(color?: string): string {
   if (!color) return '191B1F';
@@ -99,6 +102,23 @@ export async function exportPresentationToPptxBuffer(
       const h = Math.max(0.1, pxToInches(el.height));
 
       if (el.type === 'text') {
+        if (el.textEffect === 'sticker-outline' || el.textEffect === 'ransom-cutout') {
+          try {
+            const svg = renderStyledTextSvgString(el);
+            const dataUri = rasterizeSvgToPngDataUri(svg, Math.max(240, el.width * 2));
+            pSlide.addImage({
+              data: dataUri,
+              x,
+              y,
+              w,
+              h,
+              rotate: el.rotation || 0,
+            });
+            continue;
+          } catch {
+            // Fall back to standard native PowerPoint text box
+          }
+        }
         pSlide.addText(el.content, {
           x,
           y,
@@ -165,7 +185,13 @@ export async function exportPresentationToPptxBuffer(
         });
       } else if (el.type === 'icon') {
         try {
-          const iconSvg = renderIconSvgString(el.iconName, el.color, el.strokeWidth);
+          const iconSvg = renderIconSvgString(
+            el.iconName,
+            el.color,
+            el.strokeWidth,
+            el.colorMode ?? 'brand',
+            el.id
+          );
           const dataUri = rasterizeSvgToPngDataUri(iconSvg, Math.max(96, el.width * 2));
           pSlide.addImage({
             data: dataUri,
@@ -217,10 +243,19 @@ export async function exportPresentationToPptxBuffer(
             text: header,
             options: { bold: true, fill: { color: stripHash(el.headerBg) }, color: stripHash(el.headerColor) },
           })),
-          ...el.rows.map((row) =>
+          ...el.rows.map((row, ri) =>
             row.map((cell) => ({
               text: cell,
-              options: { fill: { color: stripHash(el.cellBg) }, color: stripHash(el.textColor) },
+              options: {
+                fill: {
+                  color: stripHash(
+                    (el.tableStyle === 'striped' || el.stripeBg) && ri % 2 === 1
+                      ? el.stripeBg || 'F4F4F5'
+                      : el.cellBg
+                  ),
+                },
+                color: stripHash(el.textColor),
+              },
             }))
           ),
         ];
@@ -228,15 +263,19 @@ export async function exportPresentationToPptxBuffer(
           x,
           y,
           w,
-          border: { pt: 0.75, color: stripHash(el.borderColor) },
+          border: { pt: el.tableStyle === 'minimal' ? 0.4 : 0.75, color: stripHash(el.borderColor) },
           fontSize: 11,
         });
       } else if (el.type === 'chart') {
         const chartType =
           el.chartKind === 'line'
             ? pptx.ChartType.line
+            : el.chartKind === 'area'
+            ? pptx.ChartType.area
             : el.chartKind === 'pie'
             ? pptx.ChartType.pie
+            : el.chartKind === 'donut'
+            ? pptx.ChartType.doughnut
             : pptx.ChartType.bar;
         pSlide.addChart(
           chartType,
@@ -252,6 +291,7 @@ export async function exportPresentationToPptxBuffer(
             y,
             w,
             h,
+            barDir: el.chartKind === 'horizontal-bar' || el.chartKind === 'metric-bars' ? 'bar' : 'col',
             showTitle: true,
             title: el.title,
             showValue: el.showValues,
@@ -264,6 +304,8 @@ export async function exportPresentationToPptxBuffer(
         if (
           key === 'cutout-illustration' ||
           key === 'retro-tv-frame' ||
+          key === 'photo-frame' ||
+          key === 'retro-os-dialog' ||
           key === 'birthday-flip-calendar' ||
           key === 'y2k-collage-sticker'
         ) {
@@ -273,6 +315,21 @@ export async function exportPresentationToPptxBuffer(
               svg = renderCutoutIllustrationSvg(String(el.props.stickerKind || 'balloon'), el.props, el.id).svg;
             } else if (key === 'retro-tv-frame') {
               svg = renderRetroTvSvgString(el.props, el.id);
+            } else if (key === 'retro-os-dialog') {
+              svg = renderRetroOsDialogSvgString(el.props, el.id, el.width, el.height);
+            } else if (key === 'photo-frame') {
+              let embeddedDataUri: string | undefined;
+              if (typeof el.props.mediaSrc === 'string' && el.props.mediaSrc) {
+                if (el.props.mediaSrc.startsWith('data:image/')) {
+                  embeddedDataUri = el.props.mediaSrc;
+                } else if (resolveLocalAsset) {
+                  const resolved = await resolveLocalAsset(el.props.mediaSrc);
+                  if (resolved) {
+                    embeddedDataUri = `data:${resolved.mime};base64,${resolved.base64}`;
+                  }
+                }
+              }
+              svg = renderPhotoFrameSvgString(el.props, el.id, embeddedDataUri);
             } else if (key === 'birthday-flip-calendar') {
               svg = renderFlipCalendarSvgString(el.props, el.id);
             } else {
@@ -287,6 +344,43 @@ export async function exportPresentationToPptxBuffer(
               h,
               rotate: el.rotation || 0,
             });
+
+            if (key === 'retro-tv-frame' && typeof el.props.mediaSrc === 'string' && el.props.mediaSrc) {
+              try {
+                let screenDataUri: string | null = null;
+                if (el.props.mediaSrc.startsWith('data:image/')) {
+                  screenDataUri = el.props.mediaSrc;
+                } else if (resolveLocalAsset) {
+                  const resolved = await resolveLocalAsset(el.props.mediaSrc);
+                  if (resolved) {
+                    screenDataUri = `data:${resolved.mime};base64,${resolved.base64}`;
+                  }
+                }
+                if (screenDataUri) {
+                  const sw = w * (432 / 660);
+                  const sh = h * (346 / 540);
+                  const unrotSx = x + w * (42 / 660);
+                  const unrotSy = y + h * (120 / 540);
+                  const tvCx = x + w / 2;
+                  const tvCy = y + h / 2;
+                  const dx = unrotSx + sw / 2 - tvCx;
+                  const dy = unrotSy + sh / 2 - tvCy;
+                  const rad = ((el.rotation || 0) * Math.PI) / 180;
+                  const rotCx = tvCx + dx * Math.cos(rad) - dy * Math.sin(rad);
+                  const rotCy = tvCy + dx * Math.sin(rad) + dy * Math.cos(rad);
+                  pSlide.addImage({
+                    data: screenDataUri,
+                    x: rotCx - sw / 2,
+                    y: rotCy - sh / 2,
+                    w: sw,
+                    h: sh,
+                    rotate: el.rotation || 0,
+                  });
+                }
+              } catch {
+                // Skip screen photo if asset resolution fails
+              }
+            }
             continue;
           } catch {
             // Fall back to editable card below

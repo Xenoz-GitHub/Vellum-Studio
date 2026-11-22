@@ -5,12 +5,13 @@ import type {
   PresentationElement,
   Slide,
 } from '../core/schema';
+import { contrastRatio } from '../core/quality-scorer';
 
 interface EditorState {
   document: PresentationDocument | null;
   activeSlideId: string;
   selectedElementIds: string[];
-  clipboard: PresentationElement | null;
+  clipboard: PresentationElement[];
   past: PresentationDocument[];
   future: PresentationDocument[];
   zoom: number;
@@ -23,11 +24,13 @@ interface EditorState {
   loadDocument: (doc: PresentationDocument) => void;
   selectSlide: (slideId: string) => void;
   selectElements: (ids: string[]) => void;
+  selectAllOnActiveSlide: () => void;
   setZoom: (zoom: number) => void;
   toggleSnapToGrid: () => void;
 
   commitChange: (updater: (doc: PresentationDocument) => PresentationDocument) => void;
   updateElementLive: (slideId: string, elementId: string, patch: Partial<PresentationElement>) => void;
+  updateElementsLiveBatch: (slideId: string, patches: Record<string, Partial<PresentationElement>>) => void;
   commitSnapshot: () => void;
 
   addElement: (slideId: string, element: PresentationElement) => void;
@@ -35,6 +38,8 @@ interface EditorState {
   duplicateSelectedElement: () => void;
   copySelectedElement: () => void;
   pasteElement: () => void;
+  groupSelectedElements: () => void;
+  ungroupSelectedElements: () => void;
   reorderLayer: (elementId: string, dir: 'up' | 'down') => void;
   toggleLockElement: (elementId: string) => void;
 
@@ -47,6 +52,13 @@ interface EditorState {
   updateSpeakerNotes: (slideId: string, notes: string) => void;
   applyDesignTokens: (tokens: DesignTokens) => void;
   updateTitle: (title: string) => void;
+  resizeDocument: (
+    width: number,
+    height: number,
+    aspectRatio: PresentationDocument['aspectRatio'],
+    scaleElements?: boolean
+  ) => void;
+  updatePageMargin: (pageMargin: number, showMargins?: boolean) => void;
 
   undo: () => void;
   redo: () => void;
@@ -57,7 +69,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   document: null,
   activeSlideId: '',
   selectedElementIds: [],
-  clipboard: null,
+  clipboard: [],
   past: [],
   future: [],
   zoom: 0.78,
@@ -79,6 +91,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   selectSlide: (slideId) => set({ activeSlideId: slideId, selectedElementIds: [] }),
   selectElements: (ids) => set({ selectedElementIds: ids }),
+  selectAllOnActiveSlide: () => {
+    const { document, activeSlideId } = get();
+    if (!document) return;
+    const slide = document.slides.find((s) => s.id === activeSlideId);
+    if (!slide) return;
+    set({ selectedElementIds: slide.elements.filter((e) => e.visible).map((e) => e.id) });
+  },
   setZoom: (zoom) => set({ zoom: Math.max(0.25, Math.min(2, zoom)) }),
   toggleSnapToGrid: () => set((s) => ({ snapToGrid: !s.snapToGrid })),
 
@@ -105,6 +124,26 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             elements: sl.elements.map((el) =>
               el.id === elementId ? ({ ...el, ...patch } as PresentationElement) : el
             ),
+          }
+    );
+    set({
+      document: { ...curr, slides: nextSlides },
+      isDirty: true,
+    });
+  },
+
+  updateElementsLiveBatch: (slideId, patches) => {
+    const curr = get().document;
+    if (!curr) return;
+    const nextSlides = curr.slides.map((sl) =>
+      sl.id !== slideId
+        ? sl
+        : {
+            ...sl,
+            elements: sl.elements.map((el) => {
+              const p = patches[el.id];
+              return p ? ({ ...el, ...p } as PresentationElement) : el;
+            }),
           }
     );
     set({
@@ -151,37 +190,130 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { document, activeSlideId, selectedElementIds } = get();
     if (!document || selectedElementIds.length === 0) return;
     const slide = document.slides.find((s) => s.id === activeSlideId);
-    const target = slide?.elements.find((e) => e.id === selectedElementIds[0]);
-    if (!target) return;
-    const copy: PresentationElement = {
-      ...structuredClone(target),
-      id: `el-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      name: `${target.name} Copy`,
-      x: Math.min(document.width - target.width - 16, target.x + 24),
-      y: Math.min(document.height - target.height - 16, target.y + 24),
-      zIndex: (slide?.elements.length || 1) + 1,
-    };
-    get().addElement(activeSlideId, copy);
+    if (!slide) return;
+    const selSet = new Set(selectedElementIds);
+    const targets = slide.elements.filter((e) => selSet.has(e.id));
+    if (targets.length === 0) return;
+
+    const groupRemap = new Map<string, string>();
+    const baseZ = (slide.elements.length || 1) + 1;
+    const copies: PresentationElement[] = targets.map((target, idx) => {
+      let nextGroupId = target.groupId;
+      if (target.groupId) {
+        if (!groupRemap.has(target.groupId)) {
+          groupRemap.set(target.groupId, `grp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
+        }
+        nextGroupId = groupRemap.get(target.groupId);
+      }
+      return {
+        ...structuredClone(target),
+        id: `el-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
+        name: targets.length === 1 ? `${target.name} Copy` : target.name,
+        groupId: nextGroupId,
+        x: Math.min(document.width - target.width - 16, target.x + 24),
+        y: Math.min(document.height - target.height - 16, target.y + 24),
+        zIndex: baseZ + idx,
+      };
+    });
+
+    get().commitChange((doc) => ({
+      ...doc,
+      slides: doc.slides.map((sl) =>
+        sl.id === activeSlideId ? { ...sl, elements: [...sl.elements, ...copies] } : sl
+      ),
+    }));
+    set({ selectedElementIds: copies.map((c) => c.id) });
   },
 
   copySelectedElement: () => {
     const { document, activeSlideId, selectedElementIds } = get();
     if (!document || selectedElementIds.length === 0) return;
     const slide = document.slides.find((s) => s.id === activeSlideId);
-    const target = slide?.elements.find((e) => e.id === selectedElementIds[0]);
-    if (target) set({ clipboard: structuredClone(target) });
+    if (!slide) return;
+    const selSet = new Set(selectedElementIds);
+    const targets = slide.elements.filter((e) => selSet.has(e.id));
+    if (targets.length > 0) set({ clipboard: structuredClone(targets) });
   },
 
   pasteElement: () => {
     const { clipboard, activeSlideId, document } = get();
-    if (!clipboard || !document) return;
-    const copy: PresentationElement = {
-      ...structuredClone(clipboard),
-      id: `el-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      x: Math.min(document.width - clipboard.width - 16, clipboard.x + 24),
-      y: Math.min(document.height - clipboard.height - 16, clipboard.y + 24),
-    };
-    get().addElement(activeSlideId, copy);
+    if (!clipboard || clipboard.length === 0 || !document) return;
+    const slide = document.slides.find((s) => s.id === activeSlideId);
+    const baseZ = (slide?.elements.length || 1) + 1;
+    const groupRemap = new Map<string, string>();
+    const copies: PresentationElement[] = clipboard.map((item, idx) => {
+      let nextGroupId = item.groupId;
+      if (item.groupId) {
+        if (!groupRemap.has(item.groupId)) {
+          groupRemap.set(item.groupId, `grp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
+        }
+        nextGroupId = groupRemap.get(item.groupId);
+      }
+      return {
+        ...structuredClone(item),
+        id: `el-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
+        groupId: nextGroupId,
+        x: Math.min(document.width - item.width - 16, item.x + 24),
+        y: Math.min(document.height - item.height - 16, item.y + 24),
+        zIndex: baseZ + idx,
+      };
+    });
+    get().commitChange((doc) => ({
+      ...doc,
+      slides: doc.slides.map((sl) =>
+        sl.id === activeSlideId ? { ...sl, elements: [...sl.elements, ...copies] } : sl
+      ),
+    }));
+    set({ selectedElementIds: copies.map((c) => c.id) });
+  },
+
+  groupSelectedElements: () => {
+    const { activeSlideId, selectedElementIds } = get();
+    if (selectedElementIds.length < 2) return;
+    const selSet = new Set(selectedElementIds);
+    const newGroupId = `grp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    get().commitChange((doc) => ({
+      ...doc,
+      slides: doc.slides.map((sl) =>
+        sl.id !== activeSlideId
+          ? sl
+          : {
+              ...sl,
+              elements: sl.elements.map((el) =>
+                selSet.has(el.id) ? { ...el, groupId: newGroupId } : el
+              ),
+            }
+      ),
+    }));
+  },
+
+  ungroupSelectedElements: () => {
+    const { document, activeSlideId, selectedElementIds } = get();
+    if (!document || selectedElementIds.length === 0) return;
+    const slide = document.slides.find((s) => s.id === activeSlideId);
+    if (!slide) return;
+    const selSet = new Set(selectedElementIds);
+    const groupIds = new Set(
+      slide.elements
+        .filter((el) => selSet.has(el.id) && el.groupId)
+        .map((el) => el.groupId as string)
+    );
+    if (groupIds.size === 0) return;
+    get().commitChange((doc) => ({
+      ...doc,
+      slides: doc.slides.map((sl) =>
+        sl.id !== activeSlideId
+          ? sl
+          : {
+              ...sl,
+              elements: sl.elements.map((el) =>
+                selSet.has(el.id) || (el.groupId && groupIds.has(el.groupId))
+                  ? { ...el, groupId: undefined }
+                  : el
+              ),
+            }
+      ),
+    }));
   },
 
   reorderLayer: (elementId, dir) => {
@@ -221,12 +353,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const doc = get().document;
     if (!doc) return;
     const newId = `slide-${Date.now()}`;
+    const blankInk =
+      contrastRatio(doc.tokens.colors.ink, '#FFFFFF') >= 4.5 ? doc.tokens.colors.ink : '#191B1F';
     const newSlide: Slide = {
       id: newId,
       order: doc.slides.length,
       layoutPattern: 'freeform',
       title: `Slide ${doc.slides.length + 1}`,
-      background: { type: 'solid', color: doc.tokens.colors.background },
+      background: { type: 'solid', color: '#FFFFFF' },
       speakerNotes: '',
       transition: 'fade',
       elements: [
@@ -251,7 +385,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           lineHeight: 1.2,
           letterSpacing: -0.01,
           textAlign: 'left',
-          color: doc.tokens.colors.ink,
+          color: blankInk,
           borderRadius: 0,
           padding: 4,
           semanticRole: 'title',
@@ -396,6 +530,76 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   updateTitle: (title) => {
     get().commitChange((d) => ({ ...d, title }));
+  },
+
+  resizeDocument: (width, height, aspectRatio, scaleElements = true) => {
+    const nextW = Math.max(240, Math.min(3200, Math.round(width)));
+    const nextH = Math.max(240, Math.min(3200, Math.round(height)));
+    get().commitChange((d) => {
+      const oldW = Math.max(1, d.width);
+      const oldH = Math.max(1, d.height);
+      const sx = nextW / oldW;
+      const sy = nextH / oldH;
+      const fontScale = Math.min(sx, sy);
+
+      return {
+        ...d,
+        aspectRatio,
+        width: nextW,
+        height: nextH,
+        slides: d.slides.map((s) => ({
+          ...s,
+          elements: s.elements.map((el) => {
+            if (scaleElements) {
+              const scaledW = Math.max(20, Math.round(el.width * sx));
+              const scaledH = Math.max(12, Math.round(el.height * sy));
+              const scaledX = Math.round(el.x * sx);
+              const scaledY = Math.round(el.y * sy);
+              if (el.type === 'text') {
+                return {
+                  ...el,
+                  x: scaledX,
+                  y: scaledY,
+                  width: scaledW,
+                  height: scaledH,
+                  fontSize: Math.max(10, Math.min(160, Math.round(el.fontSize * fontScale))),
+                };
+              }
+              return {
+                ...el,
+                x: scaledX,
+                y: scaledY,
+                width: scaledW,
+                height: scaledH,
+              };
+            }
+            const clampedW = Math.min(el.width, nextW - 16);
+            const clampedH = Math.min(el.height, nextH - 16);
+            return {
+              ...el,
+              x: Math.max(0, Math.min(nextW - clampedW, el.x)),
+              y: Math.max(0, Math.min(nextH - clampedH, el.y)),
+            };
+          }),
+        })),
+      };
+    });
+  },
+
+  updatePageMargin: (pageMargin, showMargins) => {
+    const margin = Math.max(0, Math.min(200, Math.round(pageMargin)));
+    get().commitChange((d) => ({
+      ...d,
+      pageMargin: margin,
+      showMargins: showMargins ?? d.showMargins ?? true,
+      tokens: {
+        ...d.tokens,
+        spacing: {
+          ...d.tokens.spacing,
+          slidePadding: margin,
+        },
+      },
+    }));
   },
 
   undo: () => {

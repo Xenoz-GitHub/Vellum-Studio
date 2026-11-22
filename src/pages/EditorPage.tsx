@@ -1,28 +1,39 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  BookOpen,
   Check,
+  CheckSquare,
   ChevronLeft,
   ChevronRight,
   Copy,
+  Crop,
   Download,
   Eye,
   FileDown,
   Grid,
+  Group,
   History,
   Image as ImageIcon,
+  ImagePlus,
+  Keyboard,
   Layers,
   Lock,
+  Maximize,
   Maximize2,
   Minimize2,
   Palette,
+  PenTool,
   Play,
   Plus,
   Redo2,
+  RotateCcw,
+  Ruler,
   Save,
   Scissors,
+  Shapes,
   Share2,
   ShieldCheck,
   Sliders,
@@ -32,6 +43,8 @@ import {
   Trash2,
   Type as TypeIcon,
   Undo2,
+  Ungroup,
+  Unlink,
   Unlock,
   BarChart3,
   X,
@@ -42,11 +55,43 @@ import { useEditorStore } from '../state/useEditorStore';
 import { SlideCanvas } from '../components/renderer/SlideCanvas';
 import { FloatingElementToolbar } from '../components/editor/FloatingElementToolbar';
 import { ImageCutoutModal } from '../components/editor/ImageCutoutModal';
-import { StudioLeftDrawer, type StudioRailTab } from '../components/editor/StudioLeftDrawer';
+import {
+  StudioLeftDrawer,
+  type StudioRailTab,
+  type TextPresetInput,
+  type UploadedAssetItem,
+} from '../components/editor/StudioLeftDrawer';
+import {
+  MobileElementsBrowser,
+  MobileInsertHub,
+  type MobileBrowseTab,
+} from '../components/editor/MobileStudioSheet';
+import { PageSetupModal } from '../components/editor/PageSetupModal';
+import { BookFlipViewer } from '../components/editor/BookFlipViewer';
 import { BUILTIN_CUSTOM_COMPONENTS, type CustomComponentManifest } from '../core/component-registry';
 import { DESIGN_TOKEN_PRESETS, DEFAULT_FONT_ASSETS } from '../core/seed-data';
 import { evaluatePresentationQuality, type QualityReport } from '../core/quality-scorer';
+import {
+  buildFreedrawPathFromPoints,
+  getPhotoFrameDef,
+  PHOTO_FRAME_CATALOG,
+  type PhotoFrameDef,
+} from '../core/frame-catalog';
+import {
+  CHART_PRESETS,
+  TABLE_PRESETS,
+  buildChartElementFromPreset,
+  buildTableElementFromPreset,
+  type ChartPresetDef,
+  type TablePresetDef,
+} from '../core/data-presets';
 import { ICON_CATALOG, SHAPE_CATALOG, type CutoutItemDef } from '../core/svg-cutout-renderer';
+import {
+  DEFAULT_IMAGE_ADJUSTMENTS,
+  IMAGE_FILTER_PRESETS,
+  extractFrameMediaAdjustments,
+  type ImageAdjustments,
+} from '../core/crop-utils';
 import type {
   DesignTokens,
   ElementAnimation,
@@ -55,7 +100,7 @@ import type {
   ShapeElement,
 } from '../core/schema';
 
-type MobileSheet = null | 'slides' | 'insert' | 'edit' | 'layers' | 'more';
+type MobileSheet = null | 'elements' | 'insert' | 'edit' | 'layers' | 'more';
 
 export function EditorPage({ presentationId }: { presentationId: string }) {
   const { navigate, profile, isDemo, enterDemoWorkspace } = useAppStore();
@@ -73,16 +118,20 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
     loadDocument,
     selectSlide,
     selectElements,
+    selectAllOnActiveSlide,
     setZoom,
     toggleSnapToGrid,
     commitChange,
     updateElementLive,
+    updateElementsLiveBatch,
     commitSnapshot,
     addElement,
     deleteSelectedElements,
     duplicateSelectedElement,
     copySelectedElement,
     pasteElement,
+    groupSelectedElements,
+    ungroupSelectedElements,
     reorderLayer,
     toggleLockElement,
     addSlide,
@@ -94,6 +143,8 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
     updateSpeakerNotes,
     applyDesignTokens,
     updateTitle,
+    resizeDocument,
+    updatePageMargin,
     undo,
     redo,
     setSavingState,
@@ -104,10 +155,17 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
   const [leftTab, setLeftTab] = useState<StudioRailTab>('slides');
   const [rightTab, setRightTab] = useState<'inspector' | 'layers' | 'theme'>('inspector');
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>(null);
+  const [mobileBrowseTab, setMobileBrowseTab] = useState<MobileBrowseTab>('elements');
+  const [mobileElemCat, setMobileElemCat] = useState<string>('All');
+  const [zoomMode, setZoomMode] = useState<'fit' | 'manual'>('fit');
+  const [uploads, setUploads] = useState<UploadedAssetItem[]>([]);
+  const [uploadingAssets, setUploadingAssets] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showInsertCompModal, setShowInsertCompModal] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [showResizeModal, setShowResizeModal] = useState(false);
   const [cutoutModalState, setCutoutModalState] = useState<{
     open: boolean;
     targetElementId?: string;
@@ -115,8 +173,11 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
     initialOriginalSrc?: string;
   }>({ open: false });
   const [presentMode, setPresentMode] = useState(false);
+  const [presentViewMode, setPresentViewMode] = useState<'slide' | 'book'>('slide');
   const [showNotesInPresent, setShowNotesInPresent] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
+  const [croppingElementId, setCroppingElementId] = useState<string | null>(null);
+  const [isDrawingFrame, setIsDrawingFrame] = useState(false);
 
   const [componentsCatalog, setComponentsCatalog] = useState<CustomComponentManifest[]>(BUILTIN_CUSTOM_COMPONENTS);
   const [tokenCatalog, setTokenCatalog] = useState<DesignTokens[]>(DESIGN_TOKEN_PRESETS);
@@ -131,7 +192,9 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
   const [exportingPptx, setExportingPptx] = useState(false);
   const [qualityReport, setQualityReport] = useState<QualityReport | null>(null);
 
+  const canvasRegionRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const zoomAnchorRef = useRef<{ rx: number; ry: number } | null>(null);
   const [viewportSize, setViewportSize] = useState({ width: 800, height: 600 });
 
   // Measure center canvas container accurately after loading finishes
@@ -164,18 +227,20 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
         if (!profile && !isDemo) {
           await enterDemoWorkspace();
         }
-        const [deckRes, compRes, tokRes, fontRes] = await Promise.all([
+        const [deckRes, compRes, tokRes, fontRes, uploadRes] = await Promise.all([
           apiFetch<{ presentation: any; versions: any[]; shareLinks: any[] }>(
             `/api/presentations/${presentationId}`
           ),
           apiFetch<any[]>('/api/catalog/components').catch(() => []),
           apiFetch<any[]>('/api/catalog/tokens').catch(() => []),
           apiFetch<any[]>('/api/catalog/fonts').catch(() => []),
+          apiFetch<UploadedAssetItem[]>('/api/uploads').catch(() => []),
         ]);
         if (!mounted) return;
         loadDocument(deckRes.presentation.document);
         setVersions(deckRes.versions || []);
         setShareLinks(deckRes.shareLinks || []);
+        setUploads(Array.isArray(uploadRes) ? uploadRes : []);
         if (compRes.length > 0) {
           setComponentsCatalog(
             compRes.map((c) => ({
@@ -261,6 +326,10 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
 
       if (presentMode) {
         if (e.key === 'Escape') setPresentMode(false);
+        if (e.key.toLowerCase() === 'n') {
+          e.preventDefault();
+          setShowNotesInPresent((v) => !v);
+        }
         if (e.key === 'ArrowRight' || e.key === ' ') {
           e.preventDefault();
           const idx = doc?.slides.findIndex((s) => s.id === activeSlideId) ?? 0;
@@ -281,82 +350,259 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
       }
       if (inInput) return;
 
+      if (isDrawingFrame && e.key === 'Escape') {
+        e.preventDefault();
+        setIsDrawingFrame(false);
+        return;
+      }
+
+      if (croppingElementId && (e.key === 'Escape' || e.key === 'Enter')) {
+        e.preventDefault();
+        setCroppingElementId(null);
+        return;
+      }
+
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
         e.preventDefault();
         undo();
-      } else if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+      } else if (
+        (e.metaKey || e.ctrlKey) &&
+        (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))
+      ) {
         e.preventDefault();
         redo();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        selectAllOnActiveSlide();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g' && !e.shiftKey) {
+        e.preventDefault();
+        groupSelectedElements();
+      } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        ungroupSelectedElements();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        duplicateSelectedElement();
       } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c') {
         copySelectedElement();
       } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v') {
         pasteElement();
-      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      } else if (e.key === '[' || e.key === ']') {
+        const curSel = useEditorStore.getState().selectedElementIds[0];
+        if (curSel) {
+          e.preventDefault();
+          reorderLayer(curSel, e.key === ']' ? 'up' : 'down');
+        }
+      } else if ((e.metaKey || e.ctrlKey) && (e.key === '=' || e.key === '+')) {
+        e.preventDefault();
+        handleStepZoom(0.1);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault();
+        handleStepZoom(-0.1);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault();
+        handleResetZoomFit();
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setShowShortcutsModal((v) => !v);
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && !croppingElementId) {
         deleteSelectedElements();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [presentMode, doc, activeSlideId]);
+  }, [presentMode, doc, activeSlideId, croppingElementId, isDrawingFrame]);
+
+  useEffect(() => {
+    setCroppingElementId(null);
+    setIsDrawingFrame(false);
+  }, [activeSlideId]);
+
+  useEffect(() => {
+    if (croppingElementId && !selectedElementIds.includes(croppingElementId)) {
+      setCroppingElementId(null);
+    }
+  }, [selectedElementIds, croppingElementId]);
 
   const activeSlide = useMemo(
     () => doc?.slides.find((s) => s.id === activeSlideId) || doc?.slides[0],
     [doc, activeSlideId]
   );
 
-  const selectedElement = useMemo(
-    () => activeSlide?.elements.find((e) => e.id === selectedElementIds[0]) || null,
-    [activeSlide, selectedElementIds]
+  const selectedElements = useMemo(() => {
+    if (!activeSlide || selectedElementIds.length === 0) return [];
+    const set = new Set(selectedElementIds);
+    return activeSlide.elements.filter((e) => set.has(e.id));
+  }, [activeSlide, selectedElementIds]);
+
+  const selectedElement = selectedElements[0] || null;
+  const canGroup = selectedElements.length >= 2;
+  const canUngroup = selectedElements.some((e) => Boolean(e.groupId));
+
+  const croppingElement = useMemo(
+    () => activeSlide?.elements.find((e) => e.id === croppingElementId) || null,
+    [activeSlide, croppingElementId]
   );
 
-  const responsiveScale = useMemo(() => {
+  const fitScale = useMemo(() => {
     if (!doc) return 0.65;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
     if (isMobile) {
-      const availW = Math.max(260, (viewportSize.width || (typeof window !== 'undefined' ? window.innerWidth : 390)) - 28);
-      return Number(Math.min(0.8, availW / doc.width).toFixed(3));
+      const availW = Math.max(
+        240,
+        (viewportSize.width || (typeof window !== 'undefined' ? window.innerWidth : 390)) - 28
+      );
+      const availH = Math.max(200, (viewportSize.height || 460) - 64);
+      return Number(Math.max(0.22, Math.min(0.85, availW / doc.width, availH / doc.height)).toFixed(3));
     }
-    const maxW = Math.max(320, viewportSize.width - 56);
+    const maxW = Math.max(320, viewportSize.width - 64);
     const maxH = Math.max(240, viewportSize.height - 96);
-    const fitScale = Math.min(maxW / doc.width, maxH / doc.height);
-    return Number(Math.max(0.32, Math.min(zoom, fitScale)).toFixed(3));
-  }, [doc, viewportSize, zoom]);
+    return Number(Math.max(0.25, Math.min(maxW / doc.width, maxH / doc.height)).toFixed(3));
+  }, [doc, viewportSize]);
 
-  const insertTextPresetElement = (preset?: {
-    name: string;
-    content: string;
-    fontFamily: string;
-    fontSize: number;
-    fontWeight: number;
-    color: string;
-    textShadow?: string;
-    backgroundColor?: string;
-    borderRadius?: number;
-  }) => {
+  const responsiveScale = useMemo(() => {
+    if (!doc) return 0.65;
+    return Number((zoomMode === 'fit' ? fitScale : zoom).toFixed(3));
+  }, [doc, zoomMode, fitScale, zoom]);
+
+  const handleSetZoomDirect = (nextScale: number) => {
+    const vp = viewportRef.current;
+    if (vp) {
+      const rx = vp.scrollWidth > vp.clientWidth + 2 ? (vp.scrollLeft + vp.clientWidth / 2) / vp.scrollWidth : 0.5;
+      const ry = vp.scrollHeight > vp.clientHeight + 2 ? (vp.scrollTop + vp.clientHeight / 2) / vp.scrollHeight : 0.5;
+      zoomAnchorRef.current = { rx, ry };
+    } else {
+      zoomAnchorRef.current = { rx: 0.5, ry: 0.5 };
+    }
+    const clamped = Math.max(0.25, Math.min(2, Number(nextScale.toFixed(3))));
+    setZoom(clamped);
+    setZoomMode('manual');
+  };
+
+  const handleStepZoom = (delta: number) => {
+    handleSetZoomDirect(Number((responsiveScale + delta).toFixed(3)));
+  };
+
+  const handleResetZoomFit = () => {
+    zoomAnchorRef.current = { rx: 0.5, ry: 0.5 };
+    setZoomMode('fit');
+    setZoom(fitScale);
+  };
+
+  useLayoutEffect(() => {
+    const vp = viewportRef.current;
+    const anchor = zoomAnchorRef.current;
+    if (!vp || !anchor) return;
+    if (vp.scrollWidth > vp.clientWidth) {
+      vp.scrollLeft = Math.max(0, Math.round(anchor.rx * vp.scrollWidth - vp.clientWidth / 2));
+    } else {
+      vp.scrollLeft = 0;
+    }
+    if (vp.scrollHeight > vp.clientHeight) {
+      vp.scrollTop = Math.max(0, Math.round(anchor.ry * vp.scrollHeight - vp.clientHeight / 2));
+    } else {
+      vp.scrollTop = 0;
+    }
+    zoomAnchorRef.current = null;
+  }, [responsiveScale]);
+
+  const handleStepZoomRef = useRef(handleStepZoom);
+  handleStepZoomRef.current = handleStepZoom;
+
+  useEffect(() => {
+    const host = canvasRegionRef.current;
+    if (!host) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      const step = e.deltaY < 0 ? 0.08 : -0.08;
+      handleStepZoomRef.current(step);
+    };
+    host.addEventListener('wheel', onWheel, { passive: false });
+    return () => host.removeEventListener('wheel', onWheel);
+  }, [loading, doc?.id]);
+
+  const openPresentMode = (preferred?: 'slide' | 'book') => {
+    setPresentViewMode(preferred ?? (doc?.aspectRatio === 'book' ? 'book' : 'slide'));
+    setPresentMode(true);
+  };
+
+  const handleUploadAssets = async (files: FileList | File[]) => {
+    const list = Array.from(files).filter(
+      (f) => f.type.startsWith('image/') || /\.(png|jpe?g|webp|svg|gif)$/i.test(f.name)
+    );
+    if (list.length === 0) {
+      setError('Please select PNG, JPG, WebP, GIF, or SVG images.');
+      return;
+    }
+    setUploadingAssets(true);
+    try {
+      const uploaded: UploadedAssetItem[] = [];
+      for (const file of list) {
+        const form = new FormData();
+        form.append('file', file);
+        const res = await apiFetch<UploadedAssetItem>('/api/uploads', {
+          method: 'POST',
+          body: form,
+        });
+        uploaded.push(res);
+      }
+      setUploads((prev) => [...uploaded, ...prev]);
+    } catch (err: any) {
+      setError(err.message || 'Image upload failed.');
+    } finally {
+      setUploadingAssets(false);
+    }
+  };
+
+  const handleDeleteUpload = async (id: string) => {
+    try {
+      await apiFetch(`/api/uploads/${id}`, { method: 'DELETE' });
+      setUploads((prev) => prev.filter((item) => item.id !== id));
+    } catch (err: any) {
+      setError(err.message || 'Could not remove uploaded image.');
+    }
+  };
+
+  const insertTextPresetElement = (preset?: TextPresetInput) => {
     if (!doc || !activeSlide) return;
+    const isSticker = preset?.textEffect === 'sticker-outline';
+    const isRansom = preset?.textEffect === 'ransom-cutout';
+    const w = isSticker
+      ? Math.min(doc.width - 80, 460)
+      : isRansom
+      ? Math.min(doc.width - 80, 420)
+      : Math.min(doc.width - 80, 560);
+    const h = isSticker ? 175 : preset && preset.fontSize >= 36 ? 120 : 100;
     addElement(activeSlide.id, {
       id: `el-${Date.now()}`,
       name: preset?.name || 'Text Block',
       type: 'text',
-      x: Math.round(doc.width * 0.12),
-      y: Math.round(doc.height * 0.22),
-      width: Math.min(doc.width - 160, 560),
-      height: preset && preset.fontSize >= 36 ? 120 : 100,
-      rotation: 0,
+      x: Math.max(24, Math.round(doc.width / 2 - w / 2)),
+      y: Math.max(24, Math.round(doc.height * 0.24)),
+      width: w,
+      height: h,
+      rotation: preset?.rotation ?? 0,
       zIndex: activeSlide.elements.length + 1,
       opacity: 1,
       visible: true,
       locked: false,
-      content: preset?.content || 'Double-click to edit this text block.',
+      content: preset?.content ?? 'TEXT HERE',
       fontFamily: preset?.fontFamily || doc.tokens.typography.bodyFont,
       fontSize: preset?.fontSize || 22,
       fontWeight: preset?.fontWeight || 400,
       fontStyle: 'normal',
-      lineHeight: 1.3,
+      lineHeight: preset?.lineHeight ?? 1.3,
       letterSpacing: 0,
-      textAlign: preset?.backgroundColor || (preset && preset.fontSize >= 36) ? 'center' : 'left',
+      textAlign:
+        preset?.backgroundColor || isSticker || isRansom || (preset && preset.fontSize >= 36)
+          ? 'center'
+          : 'left',
       color: preset?.color || doc.tokens.colors.ink,
       textShadow: preset?.textShadow,
+      textEffect: preset?.textEffect ?? 'none',
+      outlineColor: preset?.outlineColor,
+      outlineWidth: preset?.outlineWidth,
       backgroundColor: preset?.backgroundColor,
       borderRadius: preset?.borderRadius ?? 0,
       padding: preset?.backgroundColor ? 10 : 4,
@@ -398,28 +644,35 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
 
   const insertCutoutElement = (def: CutoutItemDef) => {
     if (!doc || !activeSlide) return;
+    const isBg = def.category === 'Backgrounds';
+    const isStructural = isBg || def.category === 'Headers & Lines' || def.category === 'Borders & Edges';
     addElement(activeSlide.id, {
       id: `el-${Date.now()}`,
       name: def.name,
       type: 'custom',
-      x: Math.round(doc.width / 2 - def.defaultWidth / 2),
-      y: Math.round(doc.height / 2 - def.defaultHeight / 2),
-      width: def.defaultWidth,
-      height: def.defaultHeight,
+      x: isBg ? 0 : Math.round(doc.width / 2 - def.defaultWidth / 2),
+      y: isBg ? 0 : Math.round(doc.height / 2 - def.defaultHeight / 2),
+      width: isBg ? doc.width : def.defaultWidth,
+      height: isBg ? doc.height : def.defaultHeight,
       rotation: 0,
-      zIndex: activeSlide.elements.length + 1,
+      zIndex: isBg ? 0 : activeSlide.elements.length + 1,
       opacity: 1,
       visible: true,
       locked: false,
       componentKey: 'cutout-illustration',
       componentVersion: '1.0.0',
       props: { ...def.defaultProps },
-      animation: 'pop',
+      animation: isStructural ? 'none' : 'pop',
     });
     setMobileSheet(null);
   };
 
-  const insertIconElement = (iconId: string, label: string, color: string) => {
+  const insertIconElement = (
+    iconId: string,
+    label: string,
+    color: string,
+    colorMode: 'brand' | 'mono' = 'brand'
+  ) => {
     if (!doc || !activeSlide) return;
     addElement(activeSlide.id, {
       id: `el-${Date.now()}`,
@@ -436,70 +689,39 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
       locked: false,
       iconName: iconId,
       color,
+      colorMode,
       strokeWidth: 1.9,
     });
     setMobileSheet(null);
   };
 
-  const insertChartElement = () => {
+  const insertChartElement = (preset?: ChartPresetDef) => {
     if (!doc || !activeSlide) return;
-    addElement(activeSlide.id, {
-      id: `el-${Date.now()}`,
-      name: 'Bar Chart',
-      type: 'chart',
-      x: 180,
-      y: 180,
-      width: 520,
-      height: 320,
-      rotation: 0,
-      zIndex: activeSlide.elements.length + 1,
-      opacity: 1,
-      visible: true,
-      locked: false,
-      chartKind: 'bar',
-      title: 'Quarterly Comparison',
-      data: [
-        { label: 'Q1', value: 42, color: doc.tokens.colors.chartPalette[0] },
-        { label: 'Q2', value: 64, color: doc.tokens.colors.chartPalette[1] },
-        { label: 'Q3', value: 78, color: doc.tokens.colors.chartPalette[2] },
-        { label: 'Q4', value: 94, color: doc.tokens.colors.accent },
-      ],
-      showValues: true,
-      showLegend: false,
-      accentColor: doc.tokens.colors.accent,
-      textColor: doc.tokens.colors.ink,
-      surfaceColor: doc.tokens.colors.surface,
-    });
+    addElement(
+      activeSlide.id,
+      buildChartElementFromPreset(
+        preset || CHART_PRESETS[0],
+        doc.width,
+        doc.height,
+        activeSlide.elements.length + 1,
+        doc.tokens
+      )
+    );
     setMobileSheet(null);
   };
 
-  const insertTableElement = () => {
+  const insertTableElement = (preset?: TablePresetDef) => {
     if (!doc || !activeSlide) return;
-    addElement(activeSlide.id, {
-      id: `el-${Date.now()}`,
-      name: 'Data Table',
-      type: 'table',
-      x: 120,
-      y: 200,
-      width: 640,
-      height: 220,
-      rotation: 0,
-      zIndex: activeSlide.elements.length + 1,
-      opacity: 1,
-      visible: true,
-      locked: false,
-      headers: ['Metric', 'Baseline', 'Target'],
-      rows: [
-        ['Adoption Rate', '42%', '78%'],
-        ['Cycle Time', '6.4 hrs', '1.2 hrs'],
-        ['Contrast Compliance', '84%', '100%'],
-      ],
-      headerBg: doc.tokens.colors.ink,
-      headerColor: doc.tokens.colors.surface,
-      cellBg: doc.tokens.colors.surface,
-      textColor: doc.tokens.colors.ink,
-      borderColor: doc.tokens.colors.border,
-    });
+    addElement(
+      activeSlide.id,
+      buildTableElementFromPreset(
+        preset || TABLE_PRESETS[0],
+        doc.width,
+        doc.height,
+        activeSlide.elements.length + 1,
+        doc.tokens
+      )
+    );
     setMobileSheet(null);
   };
 
@@ -509,13 +731,14 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
     try {
       const form = new FormData();
       form.append('file', file);
-      const res = await apiFetch<{ publicUrl: string }>('/api/uploads', { method: 'POST', body: form });
+      const res = await apiFetch<UploadedAssetItem>('/api/uploads', { method: 'POST', body: form });
+      setUploads((prev) => [res, ...prev]);
       addElement(activeSlide.id, {
         id: `el-${Date.now()}`,
         name: file.name,
         type: 'image',
-        x: 180,
-        y: 160,
+        x: Math.max(24, Math.round((doc?.width || 960) / 2 - 220)),
+        y: Math.max(24, Math.round((doc?.height || 720) / 2 - 150)),
         width: 440,
         height: 300,
         rotation: 0,
@@ -673,6 +896,378 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
     }));
   };
 
+  const handleSlotImageIntoFrame = (imageElId: string, frameElId: string) => {
+    if (!doc || !activeSlide) return;
+    const imgEl = activeSlide.elements.find((e) => e.id === imageElId && e.type === 'image');
+    const frameEl = activeSlide.elements.find((e) => e.id === frameElId && e.type === 'custom');
+    if (!imgEl || imgEl.type !== 'image' || !frameEl || frameEl.type !== 'custom') return;
+
+    useEditorStore.setState((state) => {
+      if (!state.document) return state;
+      return {
+        document: {
+          ...state.document,
+          slides: state.document.slides.map((sl) =>
+            sl.id !== activeSlide.id
+              ? sl
+              : {
+                  ...sl,
+                  elements: sl.elements
+                    .filter((el) => el.id !== imageElId)
+                    .map((el) =>
+                      el.id === frameElId && el.type === 'custom'
+                        ? {
+                            ...el,
+                            props: {
+                              ...el.props,
+                              mediaSrc: imgEl.src,
+                              mediaOriginalSrc: imgEl.originalSrc || imgEl.src,
+                              mediaAlt: imgEl.alt || el.name,
+                              mediaFit: 'cover',
+                              mediaCropX: imgEl.cropX ?? 50,
+                              mediaCropY: imgEl.cropY ?? 50,
+                              mediaZoom: imgEl.cropZoom ?? 1,
+                              mediaBrightness: imgEl.brightness ?? 100,
+                              mediaContrast: imgEl.contrast ?? 100,
+                              mediaSaturation: imgEl.saturation ?? 100,
+                              mediaHueRotate: imgEl.hueRotate ?? 0,
+                              mediaBlur: imgEl.blur ?? 0,
+                              mediaGrayscale: imgEl.grayscale ?? 0,
+                              mediaSepia: imgEl.sepia ?? 0,
+                            },
+                          }
+                        : el
+                    ),
+                }
+          ),
+        },
+        selectedElementIds: [frameElId],
+        isDirty: true,
+      };
+    });
+  };
+
+  const handleDetachFrameMedia = (frameElId: string) => {
+    if (!doc || !activeSlide) return;
+    const frameEl = activeSlide.elements.find((e) => e.id === frameElId && e.type === 'custom');
+    if (!frameEl || frameEl.type !== 'custom' || typeof frameEl.props.mediaSrc !== 'string' || !frameEl.props.mediaSrc) {
+      return;
+    }
+
+    const cavRatio =
+      frameEl.componentKey === 'retro-tv-frame'
+        ? { x: 42 / 660, y: 120 / 540, w: 432 / 660, h: 346 / 540 }
+        : (() => {
+            const def = getPhotoFrameDef(frameEl.props.frameKind, frameEl.props);
+            return {
+              x: def.cavity.x / def.viewBoxW,
+              y: def.cavity.y / def.viewBoxH,
+              w: def.cavity.width / def.viewBoxW,
+              h: def.cavity.height / def.viewBoxH,
+            };
+          })();
+
+    const screenW = Math.max(120, Math.round(frameEl.width * cavRatio.w));
+    const screenH = Math.max(100, Math.round(frameEl.height * cavRatio.h));
+    const detachedId = `el-${Date.now()}`;
+    const nextMediaSrc = String(frameEl.props.mediaSrc);
+    const nextOriginalSrc =
+      typeof frameEl.props.mediaOriginalSrc === 'string' ? frameEl.props.mediaOriginalSrc : nextMediaSrc;
+    const nextAlt = typeof frameEl.props.mediaAlt === 'string' ? frameEl.props.mediaAlt : 'Frame Photo';
+    const nextFit = frameEl.props.mediaFit === 'contain' ? 'contain' : 'cover';
+    const nextCropX = typeof frameEl.props.mediaCropX === 'number' ? frameEl.props.mediaCropX : 50;
+    const nextCropY = typeof frameEl.props.mediaCropY === 'number' ? frameEl.props.mediaCropY : 50;
+    const nextZoom = typeof frameEl.props.mediaZoom === 'number' ? frameEl.props.mediaZoom : 1;
+    const nextAdj = extractFrameMediaAdjustments(frameEl.props);
+
+    setCroppingElementId(null);
+    commitChange((d) => ({
+      ...d,
+      slides: d.slides.map((sl) => {
+        if (sl.id !== activeSlide.id) return sl;
+        const cleaned = sl.elements.map((el) => {
+          if (el.id !== frameElId || el.type !== 'custom') return el;
+          const nextProps = { ...el.props };
+          delete nextProps.mediaSrc;
+          delete nextProps.mediaOriginalSrc;
+          delete nextProps.mediaAlt;
+          delete nextProps.mediaFit;
+          delete nextProps.mediaCropX;
+          delete nextProps.mediaCropY;
+          delete nextProps.mediaZoom;
+          delete nextProps.mediaBrightness;
+          delete nextProps.mediaContrast;
+          delete nextProps.mediaSaturation;
+          delete nextProps.mediaHueRotate;
+          delete nextProps.mediaBlur;
+          delete nextProps.mediaGrayscale;
+          delete nextProps.mediaSepia;
+          return { ...el, props: nextProps };
+        });
+        const detachedEl: PresentationElement = {
+          id: detachedId,
+          name: nextAlt,
+          type: 'image',
+          x: Math.min(d.width - screenW - 16, Math.round(frameEl.x + frameEl.width * cavRatio.x + 28)),
+          y: Math.min(d.height - screenH - 16, Math.round(frameEl.y + frameEl.height * cavRatio.y + 28)),
+          width: screenW,
+          height: screenH,
+          rotation: 0,
+          zIndex: frameEl.zIndex + 1,
+          opacity: 1,
+          visible: true,
+          locked: false,
+          src: nextMediaSrc,
+          originalSrc: nextOriginalSrc,
+          alt: nextAlt,
+          objectFit: nextFit,
+          borderRadius: 12,
+          cropX: nextCropX,
+          cropY: nextCropY,
+          cropZoom: nextZoom,
+          brightness: nextAdj.brightness,
+          contrast: nextAdj.contrast,
+          saturation: nextAdj.saturation,
+          hueRotate: nextAdj.hueRotate,
+          blur: nextAdj.blur,
+          grayscale: nextAdj.grayscale,
+          sepia: nextAdj.sepia,
+        };
+        return { ...sl, elements: [...cleaned, detachedEl] };
+      }),
+    }));
+    selectElements([detachedId]);
+  };
+
+  const handleClearFrameMedia = (frameElId: string) => {
+    if (!activeSlide) return;
+    setCroppingElementId(null);
+    commitChange((d) => ({
+      ...d,
+      slides: d.slides.map((sl) =>
+        sl.id !== activeSlide.id
+          ? sl
+          : {
+              ...sl,
+              elements: sl.elements.map((el) => {
+                if (el.id !== frameElId || el.type !== 'custom') return el;
+                const nextProps = { ...el.props };
+                delete nextProps.mediaSrc;
+                delete nextProps.mediaOriginalSrc;
+                delete nextProps.mediaAlt;
+                delete nextProps.mediaFit;
+                delete nextProps.mediaCropX;
+                delete nextProps.mediaCropY;
+                delete nextProps.mediaZoom;
+                delete nextProps.mediaBrightness;
+                delete nextProps.mediaContrast;
+                delete nextProps.mediaSaturation;
+                delete nextProps.mediaHueRotate;
+                delete nextProps.mediaBlur;
+                delete nextProps.mediaGrayscale;
+                delete nextProps.mediaSepia;
+                return { ...el, props: nextProps };
+              }),
+            }
+      ),
+    }));
+  };
+
+  const insertOrSlotImageUrl = (
+    publicUrl: string,
+    altName: string,
+    canvasX: number,
+    canvasY: number,
+    targetFrameId?: string
+  ) => {
+    if (!doc || !activeSlide) return;
+    if (targetFrameId) {
+      commitChange((d) => ({
+        ...d,
+        slides: d.slides.map((sl) =>
+          sl.id !== activeSlide.id
+            ? sl
+            : {
+                ...sl,
+                elements: sl.elements.map((el) =>
+                  el.id === targetFrameId && el.type === 'custom'
+                    ? {
+                        ...el,
+                        props: {
+                          ...el.props,
+                          mediaSrc: publicUrl,
+                          mediaOriginalSrc: publicUrl,
+                          mediaAlt: altName,
+                          mediaFit: 'cover',
+                          mediaCropX: 50,
+                          mediaCropY: 50,
+                          mediaZoom: 1,
+                        },
+                      }
+                    : el
+                ),
+              }
+        ),
+      }));
+      selectElements([targetFrameId]);
+      return;
+    }
+
+    const w = 420;
+    const h = 290;
+    addElement(activeSlide.id, {
+      id: `el-${Date.now()}`,
+      name: altName,
+      type: 'image',
+      x: Math.max(0, Math.min(doc.width - w, Math.round(canvasX - w / 2))),
+      y: Math.max(0, Math.min(doc.height - h, Math.round(canvasY - h / 2))),
+      width: w,
+      height: h,
+      rotation: 0,
+      zIndex: activeSlide.elements.length + 1,
+      opacity: 1,
+      visible: true,
+      locked: false,
+      src: publicUrl,
+      originalSrc: publicUrl,
+      alt: altName,
+      objectFit: 'cover',
+      borderRadius: 8,
+    });
+  };
+
+  const handleDropImageFile = async (
+    file: File,
+    canvasX: number,
+    canvasY: number,
+    targetFrameId?: string
+  ) => {
+    if (!file.type.startsWith('image/') && !/\.(png|jpe?g|webp|svg|gif)$/i.test(file.name)) {
+      setError('Please drop a PNG, JPG, WebP, or SVG image file.');
+      return;
+    }
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await apiFetch<UploadedAssetItem>('/api/uploads', { method: 'POST', body: form });
+      setUploads((prev) => [res, ...prev]);
+      insertOrSlotImageUrl(res.publicUrl, file.name, canvasX, canvasY, targetFrameId);
+    } catch (err: any) {
+      setError(err.message || 'Could not upload dropped image.');
+    }
+  };
+
+  const handleInsertRetroTvFrame = () => {
+    const manifest =
+      componentsCatalog.find((c) => c.componentKey === 'retro-tv-frame') ||
+      BUILTIN_CUSTOM_COMPONENTS.find((c) => c.componentKey === 'retro-tv-frame');
+    if (!manifest || !doc || !activeSlide) return;
+    addElement(activeSlide.id, {
+      id: `el-${Date.now()}`,
+      name: manifest.name,
+      type: 'custom',
+      x: Math.round(doc.width / 2 - 220),
+      y: Math.round(doc.height / 2 - 180),
+      width: 440,
+      height: 360,
+      rotation: 0,
+      zIndex: activeSlide.elements.length + 1,
+      opacity: 1,
+      visible: true,
+      locked: false,
+      componentKey: manifest.componentKey,
+      componentVersion: manifest.version,
+      props: { ...manifest.defaultProps, accentColor: doc.tokens.colors.accent },
+    });
+    setMobileSheet(null);
+  };
+
+  const handleInsertPhotoFrame = (def: PhotoFrameDef) => {
+    if (!doc || !activeSlide) return;
+    addElement(activeSlide.id, {
+      id: `el-${Date.now()}`,
+      name: def.name,
+      type: 'custom',
+      x: Math.round(doc.width / 2 - def.defaultWidth / 2),
+      y: Math.round(doc.height / 2 - def.defaultHeight / 2),
+      width: def.defaultWidth,
+      height: def.defaultHeight,
+      rotation: 0,
+      zIndex: activeSlide.elements.length + 1,
+      opacity: 1,
+      visible: true,
+      locked: false,
+      componentKey: 'photo-frame',
+      componentVersion: '1.0.0',
+      props: {
+        frameKind: def.kind,
+        tintColor: '#CBD5E1',
+        accentColor: doc.tokens.colors.accent,
+      },
+    });
+    setMobileSheet(null);
+  };
+
+  const handleCompleteFreedrawFrame = (points: Array<{ x: number; y: number }>) => {
+    setIsDrawingFrame(false);
+    if (!doc || !activeSlide) return;
+    const res = buildFreedrawPathFromPoints(points);
+    if (!res) return;
+    addElement(activeSlide.id, {
+      id: `el-${Date.now()}`,
+      name: 'Freedraw Frame',
+      type: 'custom',
+      x: res.x,
+      y: res.y,
+      width: res.width,
+      height: res.height,
+      rotation: 0,
+      zIndex: activeSlide.elements.length + 1,
+      opacity: 1,
+      visible: true,
+      locked: false,
+      componentKey: 'photo-frame',
+      componentVersion: '1.0.0',
+      props: {
+        frameKind: 'custom-freedraw',
+        customClipPathD: res.clipPathD,
+        customViewBoxW: res.viewBoxW,
+        customViewBoxH: res.viewBoxH,
+        customFrameName: 'Freedraw Frame',
+        tintColor: '#CBD5E1',
+        accentColor: doc.tokens.colors.accent,
+      },
+    });
+  };
+
+  const handleInsertRetroDialog = (preset: Record<string, unknown> & { name: string }) => {
+    if (!doc || !activeSlide) return;
+    const { name, id: _presetId, ...dialogProps } = preset;
+    const w = Math.min(doc.width - 80, 420);
+    const h = 220;
+    addElement(activeSlide.id, {
+      id: `el-${Date.now()}`,
+      name: name || 'Retro Error Modal',
+      type: 'custom',
+      x: Math.round(doc.width / 2 - w / 2),
+      y: Math.round(doc.height / 2 - h / 2),
+      width: w,
+      height: h,
+      rotation: 0,
+      zIndex: activeSlide.elements.length + 1,
+      opacity: 1,
+      visible: true,
+      locked: false,
+      componentKey: 'retro-os-dialog',
+      componentVersion: '1.0.0',
+      props: {
+        progressPercent: 55,
+        ...dialogProps,
+      },
+    });
+    setMobileSheet(null);
+  };
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[var(--bg-canvas)] text-sm text-[var(--text-secondary)]">
@@ -701,82 +1296,188 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
 
   const activeSlideIndex = doc.slides.findIndex((s) => s.id === activeSlide.id);
 
-  // Fullscreen Present Mode
+  // Fullscreen Present & Animated Book Flip Mode
   if (presentMode) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#0D0F13] text-white flex flex-col justify-between p-4 sm:p-8">
-        <div className="flex items-center justify-between gap-4">
-          <div className="text-xs font-mono-tabular text-neutral-400">
-            {doc.title} · Slide {activeSlideIndex + 1} / {doc.slides.length}
+      <div className="fixed inset-0 z-50 bg-[#0D0F13] text-white flex flex-col justify-between p-3 sm:p-6">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 min-w-0">
+          <div className="min-w-0 flex-1 flex items-center gap-1.5 text-xs font-mono-tabular text-neutral-400">
+            <span className="truncate">{doc.title}</span>
+            <span className="shrink-0">·</span>
+            <span className="shrink-0 whitespace-nowrap">
+              {presentViewMode === 'book' ? 'Book Flip' : 'Slide'} {activeSlideIndex + 1} /{' '}
+              {doc.slides.length}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="inline-flex rounded-lg border border-neutral-700 bg-neutral-900 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setPresentViewMode('slide')}
+                className={`px-2 sm:px-2.5 py-1 rounded-md font-medium ${
+                  presentViewMode === 'slide' ? 'bg-white text-neutral-900' : 'text-neutral-300'
+                }`}
+              >
+                Slides
+              </button>
+              <button
+                type="button"
+                onClick={() => setPresentViewMode('book')}
+                className={`px-2 sm:px-2.5 py-1 rounded-md font-medium inline-flex items-center gap-1 ${
+                  presentViewMode === 'book' ? 'bg-[var(--accent)] text-white' : 'text-neutral-300'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline sm:inline">Book Flip</span>
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => setShowNotesInPresent((v) => !v)}
-              className="px-3 py-1.5 rounded-md border border-neutral-700 text-xs hover:bg-neutral-800"
+              title="Toggle speaker notes (N)"
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md border text-xs transition-colors ${
+                showNotesInPresent
+                  ? 'border-[var(--accent)] bg-[var(--accent)]/20 text-white'
+                  : 'border-neutral-700 text-neutral-200 hover:bg-neutral-800'
+              }`}
             >
-              {showNotesInPresent ? 'Hide Notes' : 'Speaker Notes'}
+              {showNotesInPresent ? 'Hide Notes' : 'Notes'}
             </button>
             <button
               type="button"
               onClick={() => setPresentMode(false)}
-              className="px-3 py-1.5 rounded-md bg-white text-neutral-900 text-xs font-semibold inline-flex items-center gap-1"
+              className="px-2.5 sm:px-3 py-1.5 rounded-md bg-white text-neutral-900 text-xs font-semibold inline-flex items-center gap-1"
             >
               <Minimize2 className="w-3.5 h-3.5" /> Exit
             </button>
           </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center overflow-hidden my-4">
-          <SlideCanvas
-            slide={activeSlide}
-            tokens={doc.tokens}
-            width={doc.width}
-            height={doc.height}
-            scale={
-              typeof window !== 'undefined'
-                ? Math.min((window.innerWidth - 64) / doc.width, (window.innerHeight - 180) / doc.height)
-                : 0.85
-            }
-            animated
-            animationKey={activeSlideIndex}
-          />
-        </div>
-
-        <div className="space-y-3">
-          {showNotesInPresent && (
-            <div className="max-w-3xl mx-auto p-3 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300">
-              {activeSlide.speakerNotes || 'No speaker notes on this slide.'}
-            </div>
-          )}
-          <div className="flex items-center justify-center gap-4">
-            <button
-              type="button"
-              onClick={() => activeSlideIndex > 0 && selectSlide(doc.slides[activeSlideIndex - 1].id)}
-              disabled={activeSlideIndex === 0}
-              className="px-4 py-2 min-h-[44px] rounded-lg border border-neutral-700 text-xs disabled:opacity-30 inline-flex items-center gap-1"
-            >
-              <ChevronLeft className="w-4 h-4" /> Previous
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                activeSlideIndex < doc.slides.length - 1 && selectSlide(doc.slides[activeSlideIndex + 1].id)
-              }
-              disabled={activeSlideIndex >= doc.slides.length - 1}
-              className="px-4 py-2 min-h-[44px] rounded-lg border border-neutral-700 text-xs disabled:opacity-30 inline-flex items-center gap-1"
-            >
-              Next <ChevronRight className="w-4 h-4" />
-            </button>
+        {presentViewMode === 'book' ? (
+          <div className="flex-1 min-h-0 flex flex-col justify-between gap-2">
+            <BookFlipViewer
+              doc={doc}
+              initialSlideIndex={activeSlideIndex}
+              onSlideChange={selectSlide}
+            />
+            {showNotesInPresent && (
+              <div className="max-w-3xl w-full mx-auto p-3 rounded-xl bg-neutral-900/95 border border-neutral-800 text-xs sm:text-sm text-neutral-200 leading-relaxed">
+                <div className="text-[10px] font-mono-tabular uppercase tracking-wider text-neutral-400 mb-1">
+                  Speaker Cues · Page {activeSlideIndex + 1}
+                </div>
+                {activeSlide.speakerNotes || 'No speaker notes for this slide yet.'}
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="flex-1 flex items-center justify-center overflow-hidden my-3 sm:my-4">
+              <SlideCanvas
+                slide={activeSlide}
+                tokens={doc.tokens}
+                width={doc.width}
+                height={doc.height}
+                scale={
+                  typeof window !== 'undefined'
+                    ? Math.min((window.innerWidth - 48) / doc.width, (window.innerHeight - (showNotesInPresent ? 250 : 180)) / doc.height)
+                    : 0.85
+                }
+                animated
+                animationKey={activeSlideIndex}
+              />
+            </div>
+
+            <div className="space-y-3">
+              {showNotesInPresent && (
+                <div className="max-w-3xl mx-auto p-3.5 rounded-xl bg-neutral-900/95 border border-neutral-800 text-xs sm:text-sm text-neutral-200 leading-relaxed">
+                  <div className="text-[10px] font-mono-tabular uppercase tracking-wider text-neutral-400 mb-1">
+                    Speaker Cues · Slide {activeSlideIndex + 1}
+                  </div>
+                  {activeSlide.speakerNotes || 'No speaker notes for this slide yet.'}
+                </div>
+              )}
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => activeSlideIndex > 0 && selectSlide(doc.slides[activeSlideIndex - 1].id)}
+                  disabled={activeSlideIndex === 0}
+                  className="px-4 py-2 min-h-[44px] rounded-lg border border-neutral-700 text-xs disabled:opacity-30 inline-flex items-center gap-1"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    activeSlideIndex < doc.slides.length - 1 && selectSlide(doc.slides[activeSlideIndex + 1].id)
+                  }
+                  disabled={activeSlideIndex >= doc.slides.length - 1}
+                  className="px-4 py-2 min-h-[44px] rounded-lg border border-neutral-700 text-xs disabled:opacity-30 inline-flex items-center gap-1"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     );
   }
 
   const renderInspectorContent = () => (
     <div className="space-y-5 text-xs">
-      {selectedElement ? (
+      {selectedElements.length > 1 ? (
+        <div className="p-3.5 rounded-xl border border-[var(--accent)]/40 bg-[var(--accent-soft)]/35 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[11px] font-mono-tabular uppercase text-[var(--accent)]">
+                Multi-Selection
+              </div>
+              <div className="font-semibold text-sm">{selectedElements.length} objects selected</div>
+            </div>
+            <button
+              type="button"
+              onClick={selectAllOnActiveSlide}
+              className="px-2 py-1 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-[11px] font-medium"
+            >
+              Select All
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {canGroup && (
+              <button
+                type="button"
+                onClick={groupSelectedElements}
+                className="h-9 px-3 rounded-lg bg-[var(--accent)] text-white font-semibold inline-flex items-center justify-center gap-1.5"
+              >
+                <Group className="w-3.5 h-3.5" /> Group
+              </button>
+            )}
+            {canUngroup && (
+              <button
+                type="button"
+                onClick={ungroupSelectedElements}
+                className="h-9 px-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-surface)] font-semibold inline-flex items-center justify-center gap-1.5"
+              >
+                <Ungroup className="w-3.5 h-3.5" /> Ungroup
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={duplicateSelectedElement}
+              className="h-9 px-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-surface)] font-medium inline-flex items-center justify-center gap-1.5"
+            >
+              <Copy className="w-3.5 h-3.5" /> Duplicate
+            </button>
+            <button
+              type="button"
+              onClick={deleteSelectedElements}
+              className="h-9 px-3 rounded-lg border border-red-200 bg-red-50 text-red-700 font-medium inline-flex items-center justify-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+          </div>
+        </div>
+      ) : selectedElement ? (
         <>
           <div className="flex items-center justify-between pb-3 border-b border-[var(--border-hairline)]">
             <div>
@@ -999,6 +1700,74 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
                   className="w-full h-8 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)] text-[11px] font-mono-tabular"
                 />
               </div>
+
+              <div className="p-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-canvas)] space-y-2.5">
+                <label className="block">
+                  <span className="text-[11px] text-[var(--text-secondary)] block mb-1">
+                    Text Style Effect
+                  </span>
+                  <select
+                    value={selectedElement.textEffect || 'none'}
+                    onChange={(e) => {
+                      const eff = e.target.value as 'none' | 'sticker-outline' | 'ransom-cutout';
+                      commitPatchOnSelected({
+                        textEffect: eff,
+                        outlineColor: selectedElement.outlineColor || '#1B365D',
+                        outlineWidth: selectedElement.outlineWidth ?? 12,
+                      } as any);
+                    }}
+                    className="w-full h-9 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-surface)]"
+                  >
+                    <option value="none">Standard Typography</option>
+                    <option value="sticker-outline">Sticker Bold Contour</option>
+                    <option value="ransom-cutout">Ransom Cutout Tiles (Magazine)</option>
+                  </select>
+                </label>
+
+                {selectedElement.textEffect === 'sticker-outline' && (
+                  <div className="space-y-2 pt-1">
+                    <label className="flex items-center justify-between">
+                      <span className="text-[11px] text-[var(--text-secondary)]">Outline Color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.outlineColor || '#1B365D'}
+                        onChange={(e) => commitPatchOnSelected({ outlineColor: e.target.value } as any)}
+                        className="w-10 h-8 rounded border border-[var(--border-hairline)] cursor-pointer"
+                      />
+                    </label>
+                    <label className="block">
+                      <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-0.5">
+                        <span>Outline Thickness</span>
+                        <span className="font-mono-tabular">{selectedElement.outlineWidth ?? 12}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={2}
+                        max={24}
+                        step={1}
+                        value={selectedElement.outlineWidth ?? 12}
+                        onChange={(e) =>
+                          updateElementLive(activeSlide.id, selectedElement.id, {
+                            outlineWidth: Number(e.target.value),
+                          } as any)
+                        }
+                        onMouseUp={(e) =>
+                          commitPatchOnSelected({
+                            outlineWidth: Number((e.target as HTMLInputElement).value),
+                          } as any)
+                        }
+                        className="w-full accent-[var(--accent)]"
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {selectedElement.textEffect === 'ransom-cutout' && (
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                    Each character gets a unique magazine cutout paper badge. Double-click text on canvas to edit.
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
@@ -1193,6 +1962,191 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
                 </label>
               </div>
 
+              {/* Crop & Frame Controls */}
+              <div className="p-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-canvas)] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold">Crop &amp; Frame Position</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCroppingElementId((cur) => (cur === selectedElement.id ? null : selectedElement.id))
+                      }
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold inline-flex items-center gap-1 ${
+                        croppingElementId === selectedElement.id
+                          ? 'bg-[var(--accent)] text-white'
+                          : 'bg-[var(--accent-soft)] text-[var(--accent)]'
+                      }`}
+                    >
+                      <Crop className="w-3 h-3" />
+                      {croppingElementId === selectedElement.id ? 'Done' : 'Edit Crop'}
+                    </button>
+                    <button
+                      type="button"
+                      title="Reset crop"
+                      onClick={() =>
+                        commitPatchOnSelected({ cropX: 50, cropY: 50, cropZoom: 1 } as any)
+                      }
+                      className="p-1 rounded border border-[var(--border-hairline)] hover:bg-[var(--bg-subtle)]"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+
+                <label className="block">
+                  <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-1">
+                    <span>Zoom</span>
+                    <span className="font-mono-tabular">{(selectedElement.cropZoom ?? 1).toFixed(2)}×</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={3.5}
+                    step={0.05}
+                    value={selectedElement.cropZoom ?? 1}
+                    onChange={(e) =>
+                      updateElementLive(activeSlide.id, selectedElement.id, {
+                        cropZoom: Number(e.target.value),
+                      } as any)
+                    }
+                    onMouseUp={(e) =>
+                      commitPatchOnSelected({ cropZoom: Number((e.target as HTMLInputElement).value) } as any)
+                    }
+                    className="w-full accent-[var(--accent)]"
+                  />
+                </label>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="block">
+                    <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-1">
+                      <span>Pan X</span>
+                      <span className="font-mono-tabular">{Math.round(selectedElement.cropX ?? 50)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={selectedElement.cropX ?? 50}
+                      onChange={(e) =>
+                        updateElementLive(activeSlide.id, selectedElement.id, {
+                          cropX: Number(e.target.value),
+                        } as any)
+                      }
+                      onMouseUp={(e) =>
+                        commitPatchOnSelected({ cropX: Number((e.target as HTMLInputElement).value) } as any)
+                      }
+                      className="w-full accent-[var(--accent)]"
+                    />
+                  </label>
+                  <label className="block">
+                    <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-1">
+                      <span>Pan Y</span>
+                      <span className="font-mono-tabular">{Math.round(selectedElement.cropY ?? 50)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={selectedElement.cropY ?? 50}
+                      onChange={(e) =>
+                        updateElementLive(activeSlide.id, selectedElement.id, {
+                          cropY: Number(e.target.value),
+                        } as any)
+                      }
+                      onMouseUp={(e) =>
+                        commitPatchOnSelected({ cropY: Number((e.target as HTMLInputElement).value) } as any)
+                      }
+                      className="w-full accent-[var(--accent)]"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Color & Tone Adjustments */}
+              <div className="p-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-canvas)] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold">Color &amp; Tone Adjustments</span>
+                  <button
+                    type="button"
+                    title="Reset color adjustments"
+                    onClick={() => commitPatchOnSelected({ ...DEFAULT_IMAGE_ADJUSTMENTS } as any)}
+                    className="px-2 py-0.5 rounded border border-[var(--border-hairline)] text-[10px] font-medium hover:bg-[var(--bg-subtle)] inline-flex items-center gap-1"
+                  >
+                    <RotateCcw className="w-2.5 h-2.5" /> Reset
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1">
+                  {IMAGE_FILTER_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => commitPatchOnSelected({ ...preset.values } as any)}
+                      className="px-1.5 py-1 rounded border border-[var(--border-hairline)] bg-[var(--bg-surface)] hover:border-[var(--accent)] text-[10px] font-medium truncate"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+
+                {(
+                  [
+                    { key: 'brightness', label: 'Brightness', min: 20, max: 200, step: 1, def: 100, unit: '%' },
+                    { key: 'contrast', label: 'Contrast', min: 20, max: 200, step: 1, def: 100, unit: '%' },
+                    { key: 'saturation', label: 'Saturation', min: 0, max: 250, step: 1, def: 100, unit: '%' },
+                    { key: 'hueRotate', label: 'Hue / Tint', min: -180, max: 180, step: 2, def: 0, unit: '°' },
+                    { key: 'blur', label: 'Blur', min: 0, max: 20, step: 0.5, def: 0, unit: 'px' },
+                    { key: 'grayscale', label: 'Grayscale', min: 0, max: 100, step: 1, def: 0, unit: '%' },
+                    { key: 'sepia', label: 'Sepia', min: 0, max: 100, step: 1, def: 0, unit: '%' },
+                  ] as Array<{
+                    key: keyof ImageAdjustments;
+                    label: string;
+                    min: number;
+                    max: number;
+                    step: number;
+                    def: number;
+                    unit: string;
+                  }>
+                ).map((ctrl) => {
+                  const val = (selectedElement[ctrl.key] as number | undefined) ?? ctrl.def;
+                  return (
+                    <label key={ctrl.key} className="block">
+                      <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-0.5">
+                        <span>{ctrl.label}</span>
+                        <span className="font-mono-tabular">
+                          {val}
+                          {ctrl.unit}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={ctrl.min}
+                        max={ctrl.max}
+                        step={ctrl.step}
+                        value={val}
+                        onChange={(e) =>
+                          updateElementLive(activeSlide.id, selectedElement.id, {
+                            [ctrl.key]: Number(e.target.value),
+                          } as any)
+                        }
+                        onMouseUp={(e) =>
+                          commitPatchOnSelected({
+                            [ctrl.key]: Number((e.target as HTMLInputElement).value),
+                          } as any)
+                        }
+                        onTouchEnd={(e) =>
+                          commitPatchOnSelected({
+                            [ctrl.key]: Number((e.target as HTMLInputElement).value),
+                          } as any)
+                        }
+                        className="w-full accent-[var(--accent)]"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+
               <label className="block">
                 <span className="text-[11px] text-[var(--text-secondary)] block mb-1">Alt Description</span>
                 <input
@@ -1215,7 +2169,16 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
                 <span className="text-[11px] text-[var(--text-secondary)] block mb-1">Icon Symbol</span>
                 <select
                   value={selectedElement.iconName}
-                  onChange={(e) => commitPatchOnSelected({ iconName: e.target.value } as any)}
+                  onChange={(e) => {
+                    const nextId = e.target.value;
+                    const found = ICON_CATALOG.find((ic) => ic.id === nextId);
+                    commitPatchOnSelected({
+                      iconName: nextId,
+                      ...((selectedElement.colorMode ?? 'brand') === 'brand' && found
+                        ? { color: found.defaultColor }
+                        : {}),
+                    } as any);
+                  }}
                   className="w-full h-9 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
                 >
                   {ICON_CATALOG.map((ic) => (
@@ -1225,27 +2188,69 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
                   ))}
                 </select>
               </label>
+
+              <div>
+                <span className="text-[11px] text-[var(--text-secondary)] block mb-1">Color Style</span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const found = ICON_CATALOG.find((ic) => ic.id === selectedElement.iconName);
+                      commitPatchOnSelected({
+                        colorMode: 'brand',
+                        ...(found ? { color: found.defaultColor } : {}),
+                      } as any);
+                    }}
+                    className={`h-8 rounded-md border text-[11px] font-semibold ${
+                      (selectedElement.colorMode ?? 'brand') === 'brand'
+                        ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
+                        : 'border-[var(--border-hairline)] bg-[var(--bg-canvas)] text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    Original Brand
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => commitPatchOnSelected({ colorMode: 'mono' } as any)}
+                    className={`h-8 rounded-md border text-[11px] font-semibold ${
+                      selectedElement.colorMode === 'mono'
+                        ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
+                        : 'border-[var(--border-hairline)] bg-[var(--bg-canvas)] text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    Custom Tint
+                  </button>
+                </div>
+              </div>
+
               <label className="flex items-center justify-between">
-                <span className="text-[11px] text-[var(--text-secondary)]">Icon Color</span>
+                <span className="text-[11px] text-[var(--text-secondary)]">
+                  Custom Tint Color
+                </span>
                 <input
                   type="color"
                   value={selectedElement.color}
-                  onChange={(e) => commitPatchOnSelected({ color: e.target.value } as any)}
+                  onChange={(e) =>
+                    commitPatchOnSelected({ color: e.target.value, colorMode: 'mono' } as any)
+                  }
                   className="w-10 h-8 rounded cursor-pointer border border-[var(--border-hairline)]"
                 />
               </label>
-              <label className="block">
-                <span className="text-[11px] text-[var(--text-secondary)] block mb-1">Stroke Weight</span>
-                <input
-                  type="number"
-                  step={0.25}
-                  min={1}
-                  max={3.5}
-                  value={selectedElement.strokeWidth}
-                  onChange={(e) => commitPatchOnSelected({ strokeWidth: Number(e.target.value) } as any)}
-                  className="w-full h-9 px-2.5 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)] font-mono-tabular"
-                />
-              </label>
+
+              {selectedElement.colorMode === 'mono' && (
+                <label className="block">
+                  <span className="text-[11px] text-[var(--text-secondary)] block mb-1">Stroke Weight</span>
+                  <input
+                    type="number"
+                    step={0.25}
+                    min={1}
+                    max={3.5}
+                    value={selectedElement.strokeWidth}
+                    onChange={(e) => commitPatchOnSelected({ strokeWidth: Number(e.target.value) } as any)}
+                    className="w-full h-9 px-2.5 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)] font-mono-tabular"
+                  />
+                </label>
+              )}
             </div>
           )}
 
@@ -1329,9 +2334,13 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
                   onChange={(e) => commitPatchOnSelected({ chartKind: e.target.value as any })}
                   className="w-full h-9 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
                 >
-                  <option value="bar">Bar Chart</option>
-                  <option value="line">Line Chart</option>
+                  <option value="bar">Vertical Bar Chart</option>
+                  <option value="horizontal-bar">Horizontal Bar Chart</option>
+                  <option value="line">Line Trend Chart</option>
+                  <option value="area">Area Spark Chart</option>
                   <option value="pie">Pie Chart</option>
+                  <option value="donut">Donut Ring Chart</option>
+                  <option value="metric-bars">KPI Metric Bars</option>
                 </select>
               </label>
               <label className="block">
@@ -1343,10 +2352,59 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
                   className="w-full h-9 px-2.5 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
                 />
               </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedElement.showValues}
+                    onChange={(e) => commitPatchOnSelected({ showValues: e.target.checked } as any)}
+                    className="accent-[var(--accent)]"
+                  />
+                  <span>Show Values</span>
+                </label>
+                <label className="flex items-center gap-1.5 text-[11px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedElement.showLegend}
+                    onChange={(e) => commitPatchOnSelected({ showLegend: e.target.checked } as any)}
+                    className="accent-[var(--accent)]"
+                  />
+                  <span>Show Legend</span>
+                </label>
+              </div>
+              <label className="flex items-center justify-between">
+                <span className="text-[11px] text-[var(--text-secondary)]">Chart Accent</span>
+                <input
+                  type="color"
+                  value={selectedElement.accentColor}
+                  onChange={(e) => commitPatchOnSelected({ accentColor: e.target.value } as any)}
+                  className="w-10 h-8 rounded cursor-pointer border border-[var(--border-hairline)]"
+                />
+              </label>
               <div className="space-y-1.5">
-                <span className="text-[11px] text-[var(--text-secondary)] block">Data Series</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-[var(--text-secondary)]">Data Series</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      commitPatchOnSelected({
+                        data: [
+                          ...selectedElement.data,
+                          {
+                            label: `Item ${selectedElement.data.length + 1}`,
+                            value: 50,
+                            color: selectedElement.accentColor,
+                          },
+                        ],
+                      } as any)
+                    }
+                    className="text-[11px] font-semibold text-[var(--accent)] hover:underline"
+                  >
+                    + Add Row
+                  </button>
+                </div>
                 {selectedElement.data.map((d, di) => (
-                  <div key={di} className="grid grid-cols-2 gap-2">
+                  <div key={di} className="grid grid-cols-[1fr_72px_28px] gap-1.5 items-center">
                     <input
                       type="text"
                       value={d.label}
@@ -1369,8 +2427,149 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
                       }}
                       className="h-8 px-2 rounded border border-[var(--border-hairline)] bg-[var(--bg-canvas)] font-mono-tabular"
                     />
+                    <button
+                      type="button"
+                      disabled={selectedElement.data.length <= 1}
+                      onClick={() =>
+                        commitPatchOnSelected({
+                          data: selectedElement.data.filter((_, idx) => idx !== di),
+                        } as any)
+                      }
+                      className="h-8 rounded border border-[var(--border-hairline)] text-red-600 disabled:opacity-30 inline-flex items-center justify-center"
+                      aria-label="Remove chart datum"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Table Properties */}
+          {selectedElement.type === 'table' && (
+            <div className="space-y-3 pt-3 border-t border-[var(--border-hairline)]">
+              <label className="block">
+                <span className="text-[11px] text-[var(--text-secondary)] block mb-1">Table Style</span>
+                <select
+                  value={selectedElement.tableStyle || 'classic'}
+                  onChange={(e) => commitPatchOnSelected({ tableStyle: e.target.value as any } as any)}
+                  className="w-full h-9 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
+                >
+                  <option value="classic">Classic Header</option>
+                  <option value="striped">Striped Rows</option>
+                  <option value="comparison">Comparison Matrix</option>
+                  <option value="minimal">Editorial Minimal</option>
+                  <option value="dark">Dark Spec</option>
+                </select>
+              </label>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    commitPatchOnSelected({
+                      rows: [...selectedElement.rows, selectedElement.headers.map(() => '—')],
+                    } as any)
+                  }
+                  className="h-8 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)] hover:border-[var(--accent)] text-[11px] font-medium"
+                >
+                  + Add Row
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    commitPatchOnSelected({
+                      headers: [...selectedElement.headers, `Col ${selectedElement.headers.length + 1}`],
+                      rows: selectedElement.rows.map((r) => [...r, '—']),
+                    } as any)
+                  }
+                  className="h-8 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-canvas)] hover:border-[var(--accent)] text-[11px] font-medium"
+                >
+                  + Add Column
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <label className="block">
+                  <span className="text-[10px] text-[var(--text-secondary)] block mb-1">Header</span>
+                  <input
+                    type="color"
+                    value={selectedElement.headerBg}
+                    onChange={(e) => commitPatchOnSelected({ headerBg: e.target.value } as any)}
+                    className="w-full h-7 rounded cursor-pointer border border-[var(--border-hairline)]"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-[10px] text-[var(--text-secondary)] block mb-1">Cells</span>
+                  <input
+                    type="color"
+                    value={selectedElement.cellBg}
+                    onChange={(e) => commitPatchOnSelected({ cellBg: e.target.value } as any)}
+                    className="w-full h-7 rounded cursor-pointer border border-[var(--border-hairline)]"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-[10px] text-[var(--text-secondary)] block mb-1">Text</span>
+                  <input
+                    type="color"
+                    value={selectedElement.textColor}
+                    onChange={(e) => commitPatchOnSelected({ textColor: e.target.value } as any)}
+                    className="w-full h-7 rounded cursor-pointer border border-[var(--border-hairline)]"
+                  />
+                </label>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-[11px] text-[var(--text-secondary)] block">Headers &amp; Cells</span>
+                <div className="overflow-x-auto space-y-1 pb-1">
+                  <div className="flex gap-1">
+                    {selectedElement.headers.map((h, hi) => (
+                      <input
+                        key={hi}
+                        type="text"
+                        value={h}
+                        onChange={(e) => {
+                          const next = [...selectedElement.headers];
+                          next[hi] = e.target.value;
+                          commitPatchOnSelected({ headers: next } as any);
+                        }}
+                        className="min-w-[64px] flex-1 h-7 px-1.5 rounded border border-[var(--border-strong)] bg-[var(--bg-canvas)] text-[11px] font-semibold"
+                      />
+                    ))}
+                  </div>
+                  {selectedElement.rows.map((row, ri) => (
+                    <div key={ri} className="flex gap-1 items-center">
+                      {row.map((cell, ci) => (
+                        <input
+                          key={ci}
+                          type="text"
+                          value={cell}
+                          onChange={(e) => {
+                            const nextRows = selectedElement.rows.map((r, rIdx) =>
+                              rIdx === ri ? r.map((c, cIdx) => (cIdx === ci ? e.target.value : c)) : r
+                            );
+                            commitPatchOnSelected({ rows: nextRows } as any);
+                          }}
+                          className="min-w-[64px] flex-1 h-7 px-1.5 rounded border border-[var(--border-hairline)] bg-[var(--bg-canvas)] text-[11px]"
+                        />
+                      ))}
+                      {selectedElement.rows.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            commitPatchOnSelected({
+                              rows: selectedElement.rows.filter((_, idx) => idx !== ri),
+                            } as any)
+                          }
+                          className="w-6 h-7 rounded border border-[var(--border-hairline)] text-red-600 text-xs shrink-0"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -1379,12 +2578,350 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           {selectedElement.type === 'custom' && (() => {
             const manifest = componentsCatalog.find((c) => c.componentKey === selectedElement.componentKey);
             const schema = manifest?.propertySchema || [];
+            const isRetroTv = selectedElement.componentKey === 'retro-tv-frame';
+            const isPhotoFrame = selectedElement.componentKey === 'photo-frame';
+            const isMediaFrame = isRetroTv || isPhotoFrame;
+            const tvMediaSrc = typeof selectedElement.props.mediaSrc === 'string' ? selectedElement.props.mediaSrc : '';
+            const tvCropX = typeof selectedElement.props.mediaCropX === 'number' ? selectedElement.props.mediaCropX : 50;
+            const tvCropY = typeof selectedElement.props.mediaCropY === 'number' ? selectedElement.props.mediaCropY : 50;
+            const tvZoom = typeof selectedElement.props.mediaZoom === 'number' ? selectedElement.props.mediaZoom : 1;
+            const tvFit = selectedElement.props.mediaFit === 'contain' ? 'contain' : 'cover';
+
             return (
               <div className="space-y-3 pt-3 border-t border-[var(--border-hairline)]">
+                {isMediaFrame && (
+                  <div className="p-3 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-canvas)] space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--accent)]">
+                        {isRetroTv ? 'CRT Screen Photo' : 'Frame Photo'}
+                      </span>
+                      <label className="px-2.5 py-1 rounded-md border border-[var(--border-strong)] bg-[var(--bg-surface)] text-[11px] font-medium inline-flex items-center gap-1 cursor-pointer hover:border-[var(--accent)]">
+                        <ImagePlus className="w-3 h-3 text-[var(--accent)]" />
+                        <span>{tvMediaSrc ? 'Replace' : 'Upload'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const form = new FormData();
+                              form.append('file', file);
+                              const res = await apiFetch<{ publicUrl: string }>('/api/uploads', {
+                                method: 'POST',
+                                body: form,
+                              });
+                              commitPatchOnSelected({
+                                props: {
+                                  ...selectedElement.props,
+                                  mediaSrc: res.publicUrl,
+                                  mediaOriginalSrc: res.publicUrl,
+                                  mediaAlt: file.name,
+                                  mediaFit: 'cover',
+                                  mediaCropX: 50,
+                                  mediaCropY: 50,
+                                  mediaZoom: 1,
+                                },
+                              } as any);
+                            } catch (err: any) {
+                              setError(err.message || 'TV screen upload failed.');
+                            } finally {
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    {tvMediaSrc ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={tvMediaSrc}
+                            alt="CRT screen preview"
+                            className="w-12 h-10 object-cover rounded border border-[var(--border-hairline)] shrink-0"
+                          />
+                          <div className="flex-1 flex flex-wrap gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCroppingElementId((cur) =>
+                                  cur === selectedElement.id ? null : selectedElement.id
+                                )
+                              }
+                              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold inline-flex items-center gap-1 ${
+                                croppingElementId === selectedElement.id
+                                  ? 'bg-[var(--accent)] text-white'
+                                  : 'bg-[var(--accent-soft)] text-[var(--accent)]'
+                              }`}
+                            >
+                              <Crop className="w-3 h-3" />
+                              {croppingElementId === selectedElement.id ? 'Done' : 'Edit Screen Crop'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDetachFrameMedia(selectedElement.id)}
+                              className="px-2 py-1 rounded-md border border-[var(--border-hairline)] text-[11px] inline-flex items-center gap-1 hover:bg-[var(--bg-subtle)]"
+                              title="Pop image out onto canvas"
+                            >
+                              <Unlink className="w-3 h-3" /> Detach
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleClearFrameMedia(selectedElement.id)}
+                              className="px-2 py-1 rounded-md border border-[var(--border-hairline)] text-[11px] text-red-600 hover:bg-red-50"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="block">
+                            <span className="text-[11px] text-[var(--text-secondary)] block mb-1">Fit Mode</span>
+                            <select
+                              value={tvFit}
+                              onChange={(e) =>
+                                commitPatchOnSelected({
+                                  props: { ...selectedElement.props, mediaFit: e.target.value },
+                                } as any)
+                              }
+                              className="w-full h-8 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-xs"
+                            >
+                              <option value="cover">Cover</option>
+                              <option value="contain">Contain</option>
+                            </select>
+                          </label>
+                          <label className="block">
+                            <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-1">
+                              <span>Zoom</span>
+                              <span className="font-mono-tabular">{tvZoom.toFixed(2)}×</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={1}
+                              max={3.5}
+                              step={0.05}
+                              value={tvZoom}
+                              onChange={(e) =>
+                                updateElementLive(activeSlide.id, selectedElement.id, {
+                                  props: { ...selectedElement.props, mediaZoom: Number(e.target.value) },
+                                } as any)
+                              }
+                              onMouseUp={(e) =>
+                                commitPatchOnSelected({
+                                  props: {
+                                    ...selectedElement.props,
+                                    mediaZoom: Number((e.target as HTMLInputElement).value),
+                                  },
+                                } as any)
+                              }
+                              className="w-full accent-[var(--accent)]"
+                            />
+                          </label>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="block">
+                            <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-1">
+                              <span>Pan X</span>
+                              <span className="font-mono-tabular">{Math.round(tvCropX)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              value={tvCropX}
+                              onChange={(e) =>
+                                updateElementLive(activeSlide.id, selectedElement.id, {
+                                  props: { ...selectedElement.props, mediaCropX: Number(e.target.value) },
+                                } as any)
+                              }
+                              onMouseUp={(e) =>
+                                commitPatchOnSelected({
+                                  props: {
+                                    ...selectedElement.props,
+                                    mediaCropX: Number((e.target as HTMLInputElement).value),
+                                  },
+                                } as any)
+                              }
+                              className="w-full accent-[var(--accent)]"
+                            />
+                          </label>
+                          <label className="block">
+                            <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-1">
+                              <span>Pan Y</span>
+                              <span className="font-mono-tabular">{Math.round(tvCropY)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              value={tvCropY}
+                              onChange={(e) =>
+                                updateElementLive(activeSlide.id, selectedElement.id, {
+                                  props: { ...selectedElement.props, mediaCropY: Number(e.target.value) },
+                                } as any)
+                              }
+                              onMouseUp={(e) =>
+                                commitPatchOnSelected({
+                                  props: {
+                                    ...selectedElement.props,
+                                    mediaCropY: Number((e.target as HTMLInputElement).value),
+                                  },
+                                } as any)
+                              }
+                              className="w-full accent-[var(--accent)]"
+                            />
+                          </label>
+                        </div>
+
+                        {/* Frame Photo Color & Filters */}
+                        {(() => {
+                          const frameAdj = extractFrameMediaAdjustments(selectedElement.props);
+                          const toFrameProps = (adj: Partial<ImageAdjustments>) => {
+                            const out: Record<string, unknown> = { ...selectedElement.props };
+                            if (adj.brightness !== undefined) out.mediaBrightness = adj.brightness;
+                            if (adj.contrast !== undefined) out.mediaContrast = adj.contrast;
+                            if (adj.saturation !== undefined) out.mediaSaturation = adj.saturation;
+                            if (adj.hueRotate !== undefined) out.mediaHueRotate = adj.hueRotate;
+                            if (adj.blur !== undefined) out.mediaBlur = adj.blur;
+                            if (adj.grayscale !== undefined) out.mediaGrayscale = adj.grayscale;
+                            if (adj.sepia !== undefined) out.mediaSepia = adj.sepia;
+                            return out;
+                          };
+                          return (
+                            <div className="pt-2.5 border-t border-[var(--border-hairline)] space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-semibold">Photo Color &amp; Filters</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    commitPatchOnSelected({
+                                      props: toFrameProps(DEFAULT_IMAGE_ADJUSTMENTS),
+                                    } as any)
+                                  }
+                                  className="px-2 py-0.5 rounded border border-[var(--border-hairline)] text-[10px] hover:bg-[var(--bg-subtle)] inline-flex items-center gap-1"
+                                >
+                                  <RotateCcw className="w-2.5 h-2.5" /> Reset
+                                </button>
+                              </div>
+                              <div className="grid grid-cols-3 gap-1">
+                                {IMAGE_FILTER_PRESETS.map((preset) => (
+                                  <button
+                                    key={preset.id}
+                                    type="button"
+                                    onClick={() =>
+                                      commitPatchOnSelected({ props: toFrameProps(preset.values) } as any)
+                                    }
+                                    className="px-1.5 py-1 rounded border border-[var(--border-hairline)] bg-[var(--bg-surface)] hover:border-[var(--accent)] text-[10px] font-medium truncate"
+                                  >
+                                    {preset.label}
+                                  </button>
+                                ))}
+                              </div>
+                              {(
+                                [
+                                  { key: 'brightness', label: 'Brightness', min: 20, max: 200, step: 1, def: 100, unit: '%' },
+                                  { key: 'contrast', label: 'Contrast', min: 20, max: 200, step: 1, def: 100, unit: '%' },
+                                  { key: 'saturation', label: 'Saturation', min: 0, max: 250, step: 1, def: 100, unit: '%' },
+                                  { key: 'hueRotate', label: 'Hue', min: -180, max: 180, step: 2, def: 0, unit: '°' },
+                                  { key: 'blur', label: 'Blur', min: 0, max: 20, step: 0.5, def: 0, unit: 'px' },
+                                  { key: 'grayscale', label: 'Grayscale', min: 0, max: 100, step: 1, def: 0, unit: '%' },
+                                  { key: 'sepia', label: 'Sepia', min: 0, max: 100, step: 1, def: 0, unit: '%' },
+                                ] as Array<{
+                                  key: keyof ImageAdjustments;
+                                  label: string;
+                                  min: number;
+                                  max: number;
+                                  step: number;
+                                  def: number;
+                                  unit: string;
+                                }>
+                              ).map((ctrl) => {
+                                const val = frameAdj[ctrl.key] ?? ctrl.def;
+                                return (
+                                  <label key={ctrl.key} className="block">
+                                    <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] mb-0.5">
+                                      <span>{ctrl.label}</span>
+                                      <span className="font-mono-tabular">
+                                        {val}
+                                        {ctrl.unit}
+                                      </span>
+                                    </div>
+                                    <input
+                                      type="range"
+                                      min={ctrl.min}
+                                      max={ctrl.max}
+                                      step={ctrl.step}
+                                      value={val}
+                                      onChange={(e) =>
+                                        updateElementLive(activeSlide.id, selectedElement.id, {
+                                          props: toFrameProps({ [ctrl.key]: Number(e.target.value) }),
+                                        } as any)
+                                      }
+                                      onMouseUp={(e) =>
+                                        commitPatchOnSelected({
+                                          props: toFrameProps({
+                                            [ctrl.key]: Number((e.target as HTMLInputElement).value),
+                                          }),
+                                        } as any)
+                                      }
+                                      onTouchEnd={(e) =>
+                                        commitPatchOnSelected({
+                                          props: toFrameProps({
+                                            [ctrl.key]: Number((e.target as HTMLInputElement).value),
+                                          }),
+                                        } as any)
+                                      }
+                                      className="w-full accent-[var(--accent)]"
+                                    />
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
+                      </>
+                    ) : (
+                      <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                        Drag any photo on the canvas or drop an image file onto this frame to snap it cleanly inside.
+                      </p>
+                    )}
+
+                    {isPhotoFrame && (
+                      <label className="block pt-2 border-t border-[var(--border-hairline)]">
+                        <span className="text-[11px] text-[var(--text-secondary)] block mb-1">Frame Shape</span>
+                          <select
+                          value={String(selectedElement.props.frameKind || 'circle')}
+                          onChange={(e) =>
+                            commitPatchOnSelected({
+                              props: { ...selectedElement.props, frameKind: e.target.value },
+                            } as any)
+                          }
+                          className="w-full h-8 px-2 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-xs"
+                        >
+                          {selectedElement.props.frameKind === 'custom-freedraw' && (
+                            <option value="custom-freedraw">Custom Freedraw Shape</option>
+                          )}
+                          {PHOTO_FRAME_CATALOG.map((pf) => (
+                            <option key={pf.kind} value={pf.kind}>
+                              {pf.name} ({pf.category})
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
+                  </div>
+                )}
+
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                   Component Properties
                 </div>
-                {schema.map((field) => {
+                {schema
+                  .filter((field) => !(isPhotoFrame && field.key === 'frameKind'))
+                  .map((field) => {
                   const val = selectedElement.props[field.key];
                   if (field.type === 'list') {
                     const arr = Array.isArray(val) ? val.map(String) : [];
@@ -1531,15 +3068,51 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
               </select>
             </label>
 
-            <label className="flex items-center justify-between">
-              <span className="text-[11px] text-[var(--text-secondary)]">Base Color</span>
-              <input
-                type="color"
-                value={activeSlide.background.color || doc.tokens.colors.background}
-                onChange={(e) => updateSlideBackground(activeSlide.id, e.target.value)}
-                className="w-10 h-8 rounded border border-[var(--border-hairline)] cursor-pointer"
-              />
-            </label>
+            <div className="space-y-2">
+              <label className="flex items-center justify-between">
+                <span className="text-[11px] text-[var(--text-secondary)]">Page Color</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono-tabular text-[var(--text-muted)] uppercase">
+                    {activeSlide.background.color || '#FFFFFF'}
+                  </span>
+                  <input
+                    type="color"
+                    aria-label="Slide background color"
+                    value={activeSlide.background.color || '#FFFFFF'}
+                    onChange={(e) => updateSlideBackground(activeSlide.id, e.target.value)}
+                    className="w-10 h-8 rounded border border-[var(--border-hairline)] cursor-pointer"
+                  />
+                </div>
+              </label>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[
+                  ['White', '#FFFFFF'],
+                  ['Paper', '#F7F6F2'],
+                  ['Sky', '#EFF6FF'],
+                  ['Cream', '#FEF3C7'],
+                  ['Blush', '#FCE7F3'],
+                  ['Slate', '#1E293B'],
+                  ['Dark', '#0D0F13'],
+                ].map(([label, hex]) => {
+                  const active =
+                    activeSlide.background.type === 'solid' &&
+                    (activeSlide.background.color || '#FFFFFF').toLowerCase() === hex.toLowerCase();
+                  return (
+                    <button
+                      key={hex}
+                      type="button"
+                      title={`${label} (${hex})`}
+                      aria-label={`Set slide color to ${label}`}
+                      onClick={() => updateSlideBackground(activeSlide.id, hex)}
+                      className={`w-6 h-6 rounded-md border transition-transform hover:scale-105 ${
+                        active ? 'ring-2 ring-[var(--accent)] ring-offset-1 border-white' : 'border-black/20'
+                      }`}
+                      style={{ backgroundColor: hex }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
 
             {activeSlide.background.type === 'gradient' && (
               <div className="space-y-1.5">
@@ -1611,13 +3184,56 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
               </label>
             </div>
 
+            <div className="p-3 rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)] space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                  Page Size &amp; Margins
+                </span>
+                <span className="text-[11px] font-mono-tabular text-[var(--accent)] font-semibold">
+                  {doc.width}×{doc.height}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowResizeModal(true)}
+                  className="h-9 px-2.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] hover:border-[var(--accent)] font-semibold inline-flex items-center justify-center gap-1.5"
+                >
+                  <Maximize className="w-3.5 h-3.5 text-[var(--accent)]" /> Resize ({doc.aspectRatio.toUpperCase()})
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updatePageMargin(doc.pageMargin ?? 48, !doc.showMargins)
+                  }
+                  className={`h-9 px-2.5 rounded-lg border font-medium inline-flex items-center justify-center gap-1.5 ${
+                    doc.showMargins
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-[var(--border-hairline)] bg-[var(--bg-surface)]'
+                  }`}
+                >
+                  <Ruler className="w-3.5 h-3.5" /> {doc.showMargins ? 'Margins On' : 'Margins Off'}
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => openPresentMode('book')}
+                className="w-full h-9 px-3 rounded-lg bg-[var(--accent-soft)] text-[var(--accent)] font-semibold inline-flex items-center justify-center gap-1.5 hover:opacity-90"
+              >
+                <BookOpen className="w-3.5 h-3.5" /> Preview Animated Book Flip
+              </button>
+            </div>
+
             <label className="block pt-2 border-t border-[var(--border-hairline)]">
-              <span className="font-medium block mb-1.5">Speaker Notes</span>
+              <span className="font-medium block mb-1">Speaker Notes (Presenter Cues)</span>
+              <span className="block text-[11px] text-[var(--text-muted)] mb-1.5">
+                Private talking points &amp; cues visible to the speaker (toggle Notes in Present mode).
+              </span>
               <textarea
                 rows={4}
                 value={activeSlide.speakerNotes}
                 onChange={(e) => updateSpeakerNotes(activeSlide.id, e.target.value)}
-                placeholder="Add presenter cue notes for this slide..."
+                placeholder="Write talking points, cues, and timing notes for the speaker..."
                 className="w-full p-2.5 rounded-lg border border-[var(--border-hairline)] bg-[var(--bg-canvas)] text-xs leading-relaxed"
               />
             </label>
@@ -1760,13 +3376,13 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-[var(--bg-canvas)] overflow-hidden">
       {/* Studio Top Toolbar */}
-      <div className="h-14 border-b border-[var(--border-hairline)] bg-[var(--bg-surface)] px-3 sm:px-4 flex items-center justify-between gap-2 shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="h-14 border-b border-[var(--border-hairline)] bg-[var(--bg-surface)] px-2 sm:px-4 flex items-center justify-between gap-2 shrink-0">
+        <div className="flex-1 min-w-0 flex items-center gap-1.5 sm:gap-2 overflow-hidden">
           <button
             type="button"
             aria-label="Back to workspace"
             onClick={() => navigate({ page: 'dashboard' })}
-            className="w-10 h-10 inline-flex items-center justify-center rounded-lg hover:bg-[var(--bg-subtle)] shrink-0"
+            className="w-8 h-8 sm:w-10 sm:h-10 inline-flex items-center justify-center rounded-lg hover:bg-[var(--bg-subtle)] shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -1776,7 +3392,7 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
             value={doc.title}
             aria-label="Presentation title"
             onChange={(e) => updateTitle(e.target.value)}
-            className="font-display font-bold text-sm sm:text-base bg-transparent truncate max-w-[140px] sm:max-w-[260px] focus:outline-none focus:border-b focus:border-[var(--accent)]"
+            className="w-full min-w-0 font-display font-bold text-xs sm:text-base bg-transparent truncate sm:max-w-[260px] focus:outline-none focus:border-b focus:border-[var(--accent)]"
           />
 
           <span className="hidden md:inline text-xs font-mono-tabular text-[var(--text-muted)] shrink-0">
@@ -1785,7 +3401,7 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
         </div>
 
         {/* Clean Quick Studio Context Pill */}
-        <div className="hidden lg:flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+        <div className="hidden lg:flex items-center gap-1.5 text-xs text-[var(--text-secondary)] shrink-0">
           <button
             type="button"
             onClick={() => setLeftTab('elements')}
@@ -1814,22 +3430,34 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          <button
+            type="button"
+            title="Page Size, Aspect Ratio & Margins"
+            onClick={() => setShowResizeModal(true)}
+            className="inline-flex items-center justify-center gap-1 px-2 sm:px-2.5 h-8 sm:h-9 rounded-lg border border-[var(--border-hairline)] text-xs font-medium hover:bg-[var(--bg-subtle)] shrink-0"
+          >
+            <Maximize className="w-3.5 h-3.5 text-[var(--accent)]" />
+            <span className="hidden sm:inline">{doc.aspectRatio.toUpperCase()}</span>
+          </button>
+
           <button
             type="button"
             aria-label="Undo"
+            title="Undo (Ctrl+Z)"
             onClick={undo}
             disabled={past.length === 0}
-            className="w-9 h-9 inline-flex items-center justify-center rounded-md hover:bg-[var(--bg-subtle)] disabled:opacity-35"
+            className="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-md hover:bg-[var(--bg-subtle)] disabled:opacity-35 shrink-0"
           >
             <Undo2 className="w-4 h-4" />
           </button>
           <button
             type="button"
             aria-label="Redo"
+            title="Redo (Ctrl+Y)"
             onClick={redo}
             disabled={future.length === 0}
-            className="w-9 h-9 inline-flex items-center justify-center rounded-md hover:bg-[var(--bg-subtle)] disabled:opacity-35"
+            className="w-8 h-8 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-md hover:bg-[var(--bg-subtle)] disabled:opacity-35 shrink-0"
           >
             <Redo2 className="w-4 h-4" />
           </button>
@@ -1837,8 +3465,9 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           <button
             type="button"
             aria-label="Toggle snap to grid"
+            title="Toggle snap to grid"
             onClick={toggleSnapToGrid}
-            className={`hidden sm:inline-flex w-9 h-9 items-center justify-center rounded-md ${
+            className={`hidden sm:inline-flex w-9 h-9 items-center justify-center rounded-md shrink-0 ${
               snapToGrid ? 'bg-[var(--bg-subtle)] text-[var(--accent)]' : 'hover:bg-[var(--bg-subtle)]'
             }`}
           >
@@ -1847,9 +3476,19 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
 
           <button
             type="button"
+            aria-label="Keyboard shortcuts"
+            title="Keyboard shortcuts (?)"
+            onClick={() => setShowShortcutsModal(true)}
+            className="hidden md:inline-flex w-9 h-9 items-center justify-center rounded-md hover:bg-[var(--bg-subtle)] shrink-0"
+          >
+            <Keyboard className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
             aria-label="Version history"
             onClick={() => setShowHistoryModal(true)}
-            className="hidden sm:inline-flex w-9 h-9 items-center justify-center rounded-md hover:bg-[var(--bg-subtle)]"
+            className="hidden sm:inline-flex w-9 h-9 items-center justify-center rounded-md hover:bg-[var(--bg-subtle)] shrink-0"
           >
             <History className="w-4 h-4" />
           </button>
@@ -1857,8 +3496,9 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           <button
             type="button"
             aria-label="Save presentation"
+            title="Save (Ctrl+S)"
             onClick={() => handleSave('Manual snapshot')}
-            className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-[var(--border-hairline)] text-xs font-medium hover:bg-[var(--bg-subtle)]"
+            className="inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 h-8 sm:h-9 rounded-lg border border-[var(--border-hairline)] text-xs font-medium hover:bg-[var(--bg-subtle)] shrink-0"
           >
             <Save className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Save</span>
@@ -1867,17 +3507,17 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           <button
             type="button"
             onClick={() => setShowShareModal(true)}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-[var(--border-hairline)] text-xs font-medium hover:bg-[var(--bg-subtle)]"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-[var(--border-hairline)] text-xs font-medium hover:bg-[var(--bg-subtle)] shrink-0"
           >
             <Share2 className="w-3.5 h-3.5" /> Share
           </button>
 
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               type="button"
               aria-label="Export presentation"
               onClick={() => setShowExportMenu((v) => !v)}
-              className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-[var(--text-primary)] text-[var(--bg-surface)] text-xs font-semibold"
+              className="inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 h-8 sm:h-9 rounded-lg bg-[var(--text-primary)] text-[var(--bg-surface)] text-xs font-semibold"
             >
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Export</span>
@@ -1918,10 +3558,18 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           <button
             type="button"
             aria-label="Present fullscreen"
-            onClick={() => setPresentMode(true)}
+            onClick={() => openPresentMode()}
             className="hidden sm:inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:bg-[var(--accent-hover)]"
           >
-            <Maximize2 className="w-3.5 h-3.5" /> Present
+            {doc.aspectRatio === 'book' ? (
+              <>
+                <BookOpen className="w-3.5 h-3.5" /> Flip Book
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5" /> Present
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -1945,6 +3593,13 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           activeSlide={activeSlide}
           selectedElement={selectedElement}
           fontCatalog={fontCatalog}
+          uploads={uploads}
+          uploadingAssets={uploadingAssets}
+          onUploadAssets={handleUploadAssets}
+          onDeleteUpload={handleDeleteUpload}
+          onInsertUploadedImage={(url, name) =>
+            insertOrSlotImageUrl(url, name, doc.width / 2, doc.height / 2)
+          }
           onSelectSlide={selectSlide}
           onAddSlide={addSlide}
           onMoveSlide={moveSlide}
@@ -1959,6 +3614,15 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           onUploadRawImage={handleInsertImageUpload}
           onOpenCutoutStudio={() => setCutoutModalState({ open: true })}
           onOpenComponentsModal={() => setShowInsertCompModal(true)}
+          onInsertRetroTv={handleInsertRetroTvFrame}
+          onInsertPhotoFrame={handleInsertPhotoFrame}
+          isDrawingFrame={isDrawingFrame}
+          onStartFreedrawFrame={() => {
+            setCroppingElementId(null);
+            selectElements([]);
+            setIsDrawingFrame((v) => !v);
+          }}
+          onInsertRetroDialog={handleInsertRetroDialog}
           onApplyAnimation={(anim: ElementAnimation) => {
             if (!selectedElement) return;
             commitPatchOnSelected({ animation: anim });
@@ -1967,23 +3631,175 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           onReplayAnimations={() => setAnimationKey((k) => k + 1)}
         />
 
-        {/* Center Canvas Viewport */}
+        {/* Center Canvas Viewport Wrapper (keeps bottom zoom bar fixed/sticky when zooming) */}
+        <div
+          ref={canvasRegionRef}
+          className="flex-1 min-w-0 relative flex flex-col overflow-hidden bg-[var(--bg-canvas)]"
+        >
         <main
           ref={viewportRef}
-          className="flex-1 min-w-0 flex flex-col items-center justify-center p-3 sm:p-6 overflow-auto relative bg-[var(--bg-canvas)]"
+          className="flex-1 min-w-0 min-h-0 flex overflow-auto relative p-10 sm:p-16 pb-24 sm:pb-24"
         >
+          <div className="m-auto flex flex-col items-center justify-center shrink-0">
+          {isDrawingFrame && (
+            <div
+              role="region"
+              aria-label="Freedraw frame mode"
+              className="mb-3 px-4 py-2 rounded-full border border-[var(--accent)] bg-[var(--bg-surface)]/95 backdrop-blur-md shadow-[var(--shadow-float)] flex flex-wrap items-center gap-3 text-xs z-40 shrink-0"
+            >
+              <span className="inline-flex items-center gap-1.5 font-semibold text-[var(--accent)]">
+                <PenTool className="w-3.5 h-3.5" />
+                Draw any closed shape on the slide · Release to turn into a photo frame
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsDrawingFrame(false)}
+                className="px-2.5 py-1 rounded-full border border-[var(--border-hairline)] hover:border-[var(--accent)] font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* Dedicated Floating Crop Action Bar when inline crop editing is active */}
+          {croppingElement &&
+            (croppingElement.type === 'image' ||
+              (croppingElement.type === 'custom' &&
+                (croppingElement.componentKey === 'retro-tv-frame' ||
+                  croppingElement.componentKey === 'photo-frame') &&
+                Boolean(croppingElement.props.mediaSrc))) && (() => {
+              const isImg = croppingElement.type === 'image';
+              const curZoom = isImg
+                ? croppingElement.cropZoom ?? 1
+                : typeof croppingElement.props.mediaZoom === 'number'
+                ? croppingElement.props.mediaZoom
+                : 1;
+              const curFit = isImg
+                ? croppingElement.objectFit
+                : croppingElement.props.mediaFit === 'contain'
+                ? 'contain'
+                : 'cover';
+
+              const setZoomVal = (val: number, commit: boolean) => {
+                const clamped = Number(Math.max(1, Math.min(3.5, val)).toFixed(2));
+                if (isImg) {
+                  if (commit) commitPatchOnSelected({ cropZoom: clamped } as any);
+                  else updateElementLive(activeSlide.id, croppingElement.id, { cropZoom: clamped } as any);
+                } else {
+                  const nextProps = { ...croppingElement.props, mediaZoom: clamped };
+                  if (commit) commitPatchOnSelected({ props: nextProps } as any);
+                  else updateElementLive(activeSlide.id, croppingElement.id, { props: nextProps } as any);
+                }
+              };
+
+              const toggleFit = () => {
+                const nextFit = curFit === 'cover' ? 'contain' : 'cover';
+                if (isImg) {
+                  commitPatchOnSelected({ objectFit: nextFit } as any);
+                } else {
+                  commitPatchOnSelected({
+                    props: { ...croppingElement.props, mediaFit: nextFit },
+                  } as any);
+                }
+              };
+
+              const resetCrop = () => {
+                if (isImg) {
+                  commitPatchOnSelected({ cropX: 50, cropY: 50, cropZoom: 1 } as any);
+                } else {
+                  commitPatchOnSelected({
+                    props: {
+                      ...croppingElement.props,
+                      mediaCropX: 50,
+                      mediaCropY: 50,
+                      mediaZoom: 1,
+                      mediaFit: 'cover',
+                    },
+                  } as any);
+                }
+              };
+
+              return (
+                <div
+                  role="region"
+                  aria-label="Crop frame controls"
+                  className="mb-3 px-3.5 py-2 rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)]/95 backdrop-blur-md shadow-[var(--shadow-float)] flex flex-wrap items-center gap-3 text-xs z-40 shrink-0"
+                >
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-[var(--accent)]">
+                    <Crop className="w-3.5 h-3.5" />
+                    {isImg ? 'Drag image to pan · Drag bars to crop' : 'Drag TV screen photo to pan'}
+                  </span>
+                  <span className="w-px h-4 bg-[var(--border-hairline)]" />
+                  <label className="inline-flex items-center gap-2">
+                    <span className="text-[var(--text-secondary)]">Zoom</span>
+                    <input
+                      type="range"
+                      min={1}
+                      max={3.5}
+                      step={0.05}
+                      value={curZoom}
+                      onChange={(e) => setZoomVal(Number(e.target.value), false)}
+                      onMouseUp={(e) => setZoomVal(Number((e.target as HTMLInputElement).value), true)}
+                      className="w-24 accent-[var(--accent)]"
+                    />
+                    <span className="font-mono-tabular w-10">{curZoom.toFixed(2)}×</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={toggleFit}
+                    className="px-2.5 py-1 rounded-full border border-[var(--border-hairline)] hover:border-[var(--accent)] font-medium"
+                  >
+                    {curFit === 'cover' ? 'Cover' : 'Contain'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetCrop}
+                    className="px-2.5 py-1 rounded-full border border-[var(--border-hairline)] hover:border-[var(--accent)] inline-flex items-center gap-1"
+                  >
+                    <RotateCcw className="w-3 h-3" /> Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCroppingElementId(null)}
+                    className="px-3 py-1 rounded-full bg-[var(--accent)] text-white font-semibold hover:bg-[var(--accent-hover)] inline-flex items-center gap-1"
+                  >
+                    <Check className="w-3.5 h-3.5" /> Done
+                  </button>
+                </div>
+              );
+            })()}
+
           <div className="relative flex items-center justify-center">
-            {selectedElement && (
+            {selectedElement && croppingElementId !== selectedElement.id && (
               <FloatingElementToolbar
                 element={selectedElement}
+                selectedElements={selectedElements}
                 slideWidth={doc.width}
                 slideHeight={doc.height}
                 scale={responsiveScale}
+                isCropping={croppingElementId === selectedElement.id}
+                canGroup={canGroup}
+                canUngroup={canUngroup}
                 onPatch={commitPatchOnSelected}
+                onLivePatch={(patch) => updateElementLive(activeSlide.id, selectedElement.id, patch)}
+                onCommitSnapshot={commitSnapshot}
+                onToggleCrop={() =>
+                  setCroppingElementId((cur) => (cur === selectedElement.id ? null : selectedElement.id))
+                }
+                onDetachFrameMedia={
+                  selectedElement.type === 'custom' &&
+                  (selectedElement.componentKey === 'retro-tv-frame' ||
+                    selectedElement.componentKey === 'photo-frame')
+                    ? () => handleDetachFrameMedia(selectedElement.id)
+                    : undefined
+                }
                 onDuplicate={duplicateSelectedElement}
                 onDelete={deleteSelectedElements}
                 onLayer={(dir) => reorderLayer(selectedElement.id, dir)}
                 onToggleLock={() => toggleLockElement(selectedElement.id)}
+                onGroup={groupSelectedElements}
+                onUngroup={ungroupSelectedElements}
+                onSelectAll={selectAllOnActiveSlide}
                 onOpenCutout={() => {
                   if (selectedElement.type === 'image') {
                     setCutoutModalState({
@@ -2010,8 +3826,13 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
               interactive
               selectedIds={selectedElementIds}
               snapToGrid={snapToGrid}
+              croppingElementId={croppingElementId}
+              pageMargin={doc.pageMargin ?? doc.tokens.spacing.slidePadding ?? 0}
+              showMargins={Boolean(doc.showMargins)}
+              backdropRef={viewportRef}
               onSelectElements={selectElements}
               onUpdateElementLive={(elId, patch) => updateElementLive(activeSlide.id, elId, patch)}
+              onUpdateElementsLiveBatch={(patches) => updateElementsLiveBatch(activeSlide.id, patches)}
               onCommitSnapshot={commitSnapshot}
               onCommitElementPatch={(elId, patch) =>
                 commitChange((d) => ({
@@ -2023,44 +3844,184 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
                   ),
                 }))
               }
+              onEnterCropMode={(elId) => setCroppingElementId(elId)}
+              onExitCropMode={() => setCroppingElementId(null)}
+              onSlotImageIntoFrame={handleSlotImageIntoFrame}
+              onDropImageFile={handleDropImageFile}
+              onDropGalleryImage={(payload, cx, cy, targetFrameId) =>
+                insertOrSlotImageUrl(payload.src, payload.alt || 'Dropped Image', cx, cy, targetFrameId)
+              }
+              isDrawingFrame={isDrawingFrame}
+              onCompleteFreedrawFrame={handleCompleteFreedrawFrame}
             />
           </div>
 
-          {/* Bottom Floating Canvas Zoom & Replay Bar */}
-          <div className="mt-3 px-3 py-1.5 rounded-full border border-[var(--border-hairline)] bg-[var(--bg-surface)]/90 backdrop-blur-sm shadow-xs flex items-center gap-2.5 text-xs font-mono-tabular text-[var(--text-secondary)] shrink-0">
-            <span>
-              Slide {activeSlideIndex + 1} / {doc.slides.length}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>{Math.round(responsiveScale * 100)}%</span>
-            <div className="hidden sm:flex items-center gap-1 ml-1">
-              <button
-                type="button"
-                aria-label="Zoom out"
-                onClick={() => setZoom(zoom - 0.1)}
-                className="w-6 h-6 inline-flex items-center justify-center rounded-full border border-[var(--border-hairline)] bg-[var(--bg-canvas)] hover:border-[var(--accent)]"
-              >
-                -
-              </button>
-              <button
-                type="button"
-                aria-label="Zoom in"
-                onClick={() => setZoom(zoom + 0.1)}
-                className="w-6 h-6 inline-flex items-center justify-center rounded-full border border-[var(--border-hairline)] bg-[var(--bg-canvas)] hover:border-[var(--accent)]"
-              >
-                +
-              </button>
-              <button
-                type="button"
-                aria-label="Replay slide animations"
-                onClick={() => setAnimationKey((k) => k + 1)}
-                className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-[var(--border-hairline)] bg-[var(--bg-canvas)] hover:border-[var(--accent)] text-[var(--text-primary)]"
-              >
-                <Play className="w-3 h-3 text-[var(--accent)]" /> Replay
-              </button>
-            </div>
           </div>
         </main>
+
+          {/* Fixed Sticky Bottom Canvas Navigation, Horizontal Swipe Zoom & Replay Bar */}
+          {(() => {
+            const zoomPct = Math.max(0, Math.min(100, ((responsiveScale - 0.25) / 1.75) * 100));
+            const startSwipeZoom = (e: React.PointerEvent<HTMLDivElement>) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const targetEl = e.currentTarget;
+              const rect = targetEl.getBoundingClientRect();
+              const startX = e.clientX;
+              const startScale = responsiveScale;
+              const trackW = Math.max(72, rect.width - 8);
+              let moved = false;
+              let rafId = 0;
+              let pendingScale: number | null = null;
+
+              const flushScale = () => {
+                rafId = 0;
+                if (pendingScale !== null) {
+                  handleSetZoomDirect(pendingScale);
+                  pendingScale = null;
+                }
+              };
+
+              const onMove = (ev: PointerEvent) => {
+                const dx = ev.clientX - startX;
+                if (Math.abs(dx) > 2) moved = true;
+                const next = Math.max(0.25, Math.min(2, startScale + (dx / trackW) * 1.45));
+                pendingScale = next;
+                if (!rafId) {
+                  rafId = window.requestAnimationFrame(flushScale);
+                }
+              };
+
+              const onUp = (ev: PointerEvent) => {
+                if (rafId) {
+                  window.cancelAnimationFrame(rafId);
+                  rafId = 0;
+                }
+                if (pendingScale !== null) {
+                  handleSetZoomDirect(pendingScale);
+                  pendingScale = null;
+                } else if (!moved) {
+                  const ratio = Math.max(0, Math.min(1, (ev.clientX - rect.left - 4) / trackW));
+                  handleSetZoomDirect(0.25 + ratio * 1.75);
+                }
+                window.removeEventListener('pointermove', onMove);
+                window.removeEventListener('pointerup', onUp);
+                window.removeEventListener('pointercancel', onUp);
+              };
+
+              window.addEventListener('pointermove', onMove);
+              window.addEventListener('pointerup', onUp);
+              window.addEventListener('pointercancel', onUp);
+            };
+
+            return (
+              <div
+                aria-label="Canvas navigation and horizontal swipe zoom controls"
+                className="pointer-events-auto absolute bottom-3 left-1/2 -translate-x-1/2 z-30 max-w-[calc(100%-1rem)] px-2.5 py-1.5 rounded-full border border-[var(--border-hairline)] bg-[var(--bg-surface)]/95 backdrop-blur-md shadow-[var(--shadow-float)] flex items-center gap-1.5 sm:gap-2 text-xs font-mono-tabular text-[var(--text-secondary)]"
+              >
+                <button
+                  type="button"
+                  aria-label="Previous slide"
+                  disabled={activeSlideIndex === 0}
+                  onClick={() => activeSlideIndex > 0 && selectSlide(doc.slides[activeSlideIndex - 1].id)}
+                  className="w-6 h-6 inline-flex items-center justify-center rounded-full hover:bg-[var(--bg-subtle)] disabled:opacity-30 shrink-0"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <span className="whitespace-nowrap text-[11px] sm:text-xs">
+                  <span className="hidden sm:inline">Slide </span>
+                  {activeSlideIndex + 1} / {doc.slides.length}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Next slide"
+                  disabled={activeSlideIndex >= doc.slides.length - 1}
+                  onClick={() =>
+                    activeSlideIndex < doc.slides.length - 1 &&
+                    selectSlide(doc.slides[activeSlideIndex + 1].id)
+                  }
+                  className="w-6 h-6 inline-flex items-center justify-center rounded-full hover:bg-[var(--bg-subtle)] disabled:opacity-30 shrink-0"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+
+                <span aria-hidden="true" className="opacity-50">·</span>
+
+                <button
+                  type="button"
+                  onClick={handleResetZoomFit}
+                  title="Tap to reset zoom to Fit (Ctrl+0)"
+                  className={`px-1.5 py-0.5 rounded-md font-semibold transition-colors shrink-0 ${
+                    zoomMode === 'fit'
+                      ? 'text-[var(--accent)] bg-[var(--accent-soft)]'
+                      : 'hover:bg-[var(--bg-subtle)]'
+                  }`}
+                >
+                  {Math.round(responsiveScale * 100)}%
+                </button>
+
+                {/* Smooth Horizontal Swipe Zoom Track */}
+                <div
+                  role="slider"
+                  tabIndex={0}
+                  aria-label="Swipe horizontally to zoom"
+                  aria-valuemin={25}
+                  aria-valuemax={200}
+                  aria-valuenow={Math.round(responsiveScale * 100)}
+                  title="Swipe or drag horizontally to zoom smoothly"
+                  onPointerDown={startSwipeZoom}
+                  onWheel={(e) => {
+                    e.preventDefault();
+                    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : -e.deltaY;
+                    handleSetZoomDirect(responsiveScale + delta * 0.0018);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      handleStepZoom(0.05);
+                    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      handleStepZoom(-0.05);
+                    }
+                  }}
+                  className="w-20 sm:w-28 h-7 px-1 flex items-center cursor-ew-resize select-none touch-none relative shrink-0"
+                >
+                  <div className="w-full h-1.5 rounded-full bg-[var(--bg-canvas)] border border-[var(--border-hairline)] relative">
+                    <div
+                      className="h-full rounded-full bg-[var(--accent)]"
+                      style={{ width: `${zoomPct}%` }}
+                    />
+                    <div
+                      className="w-3.5 h-3.5 rounded-full bg-[var(--accent)] border-2 border-white shadow-xs absolute top-1/2 -translate-y-1/2 -translate-x-1/2 pointer-events-none"
+                      style={{ left: `${zoomPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  aria-label="Replay slide animations"
+                  onClick={() => setAnimationKey((k) => k + 1)}
+                  className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full border border-[var(--border-hairline)] bg-[var(--bg-canvas)] hover:border-[var(--accent)] text-[var(--text-primary)] shrink-0"
+                >
+                  <Play className="w-3 h-3 text-[var(--accent)]" />
+                  <span className="hidden sm:inline">Replay</span>
+                </button>
+                {doc.aspectRatio === 'book' && (
+                  <button
+                    type="button"
+                    onClick={() => openPresentMode('book')}
+                    className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-[var(--accent)] text-white font-semibold shrink-0"
+                    title="Preview 3D Book Flip"
+                  >
+                    <BookOpen className="w-3 h-3" />
+                    <span className="hidden sm:inline">Flip</span>
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+        </div>
 
         {/* Desktop Right Contextual Inspector */}
         <aside className="hidden lg:flex w-80 border-l border-[var(--border-hairline)] bg-[var(--bg-surface)] flex-col shrink-0">
@@ -2095,23 +4056,117 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
         </aside>
       </div>
 
-      {/* Mobile Bottom Contextual Toolbar */}
+      {/* Canva-Style Compact Mobile Slides Filmstrip (below editor area, previews neighbor pages) */}
+      <div
+        aria-label="Pages filmstrip"
+        className="lg:hidden border-t border-[var(--border-hairline)] bg-[var(--bg-surface)]/95 px-2.5 py-1.5 shrink-0"
+      >
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 snap-x">
+          {doc.slides.map((sl, idx) => {
+            const active = sl.id === activeSlide.id;
+            const thumbScale = Number(Math.min(70 / doc.width, 40 / doc.height).toFixed(3));
+            return (
+              <div
+                key={sl.id}
+                className={`relative shrink-0 snap-center rounded-lg p-1 border transition-all ${
+                  active
+                    ? 'border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]/40'
+                    : 'border-[var(--border-hairline)] bg-[var(--bg-canvas)] opacity-85'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => selectSlide(sl.id)}
+                  aria-label={`Select page ${idx + 1}: ${sl.title}`}
+                  className="block pointer-events-auto"
+                >
+                  <div className="pointer-events-none overflow-hidden rounded-xs shadow-xs">
+                    <SlideCanvas
+                      slide={sl}
+                      tokens={doc.tokens}
+                      width={doc.width}
+                      height={doc.height}
+                      scale={thumbScale}
+                      animated={false}
+                    />
+                  </div>
+                </button>
+                <span
+                  className={`absolute bottom-1 left-1 px-1 rounded text-[9px] font-mono-tabular font-bold leading-tight pointer-events-none ${
+                    active ? 'bg-[var(--accent)] text-white' : 'bg-black/60 text-white'
+                  }`}
+                >
+                  {idx + 1}
+                </span>
+                {active && (
+                  <div className="absolute top-0.5 right-0.5 flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      aria-label={`Duplicate page ${idx + 1}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicateSlide(sl.id);
+                      }}
+                      className="w-4 h-4 rounded bg-white/95 text-neutral-800 shadow-xs flex items-center justify-center"
+                    >
+                      <Copy className="w-2.5 h-2.5" />
+                    </button>
+                    {doc.slides.length > 1 && (
+                      <button
+                        type="button"
+                        aria-label={`Delete page ${idx + 1}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteSlide(sl.id);
+                        }}
+                        className="w-4 h-4 rounded bg-white/95 text-red-600 shadow-xs flex items-center justify-center"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={addSlide}
+            aria-label="Add new page"
+            className="shrink-0 w-12 h-[48px] rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--bg-canvas)] hover:border-[var(--accent)] text-[var(--accent)] flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Contextual Toolbar (Elements replaces Slides cleanly) */}
       <nav
         aria-label="Mobile editor tools"
-        className="lg:hidden border-t border-[var(--border-hairline)] bg-[var(--bg-surface)] grid grid-cols-5 h-16 shrink-0"
+        className="lg:hidden border-t border-[var(--border-hairline)] bg-[var(--bg-surface)] grid grid-cols-5 h-15 shrink-0"
       >
         <button
           type="button"
-          onClick={() => setMobileSheet(mobileSheet === 'slides' ? null : 'slides')}
-          className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium min-h-[44px]"
+          onClick={() => {
+            setMobileBrowseTab('elements');
+            setMobileElemCat('All');
+            setMobileSheet(mobileSheet === 'elements' ? null : 'elements');
+          }}
+          className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium min-h-[44px] ${
+            mobileSheet === 'elements' ? 'text-[var(--accent)] font-semibold' : ''
+          }`}
         >
-          <Layers className="w-4 h-4" />
-          <span>Slides</span>
+          <Shapes className="w-4 h-4" />
+          <span>Elements</span>
         </button>
         <button
           type="button"
           onClick={() => setMobileSheet(mobileSheet === 'insert' ? null : 'insert')}
-          className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium min-h-[44px]"
+          className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium min-h-[44px] ${
+            mobileSheet === 'insert' ? 'text-[var(--accent)] font-semibold' : ''
+          }`}
         >
           <Plus className="w-4 h-4" />
           <span>Add</span>
@@ -2119,7 +4174,9 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
         <button
           type="button"
           onClick={() => setMobileSheet(mobileSheet === 'edit' ? null : 'edit')}
-          className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium min-h-[44px]"
+          className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium min-h-[44px] ${
+            mobileSheet === 'edit' ? 'text-[var(--accent)] font-semibold' : ''
+          }`}
         >
           <Sliders className="w-4 h-4" />
           <span>Edit</span>
@@ -2127,18 +4184,20 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
         <button
           type="button"
           onClick={() => setMobileSheet(mobileSheet === 'layers' ? null : 'layers')}
-          className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium min-h-[44px]"
+          className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium min-h-[44px] ${
+            mobileSheet === 'layers' ? 'text-[var(--accent)] font-semibold' : ''
+          }`}
         >
           <Palette className="w-4 h-4" />
           <span>Theme</span>
         </button>
         <button
           type="button"
-          onClick={() => setPresentMode(true)}
+          onClick={() => openPresentMode()}
           className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold text-[var(--accent)] min-h-[44px]"
         >
-          <Eye className="w-4 h-4" />
-          <span>Present</span>
+          {doc.aspectRatio === 'book' ? <BookOpen className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          <span>{doc.aspectRatio === 'book' ? 'Flip' : 'Present'}</span>
         </button>
       </nav>
 
@@ -2148,91 +4207,143 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           role="dialog"
           aria-modal="true"
           aria-label="Mobile tool panel"
-          className="lg:hidden fixed inset-x-0 bottom-16 z-40 rounded-t-2xl border-t border-[var(--border-strong)] bg-[var(--bg-surface)] shadow-[var(--shadow-float)] max-h-[62vh] flex flex-col"
+          className="lg:hidden fixed inset-x-0 bottom-15 z-40 rounded-t-2xl border-t border-[var(--border-strong)] bg-[var(--bg-surface)] shadow-[var(--shadow-float)] max-h-[70vh] flex flex-col"
         >
-          <div className="px-4 py-3 border-b border-[var(--border-hairline)] flex items-center justify-between">
-            <span className="font-semibold text-sm capitalize">{mobileSheet}</span>
-            <button
-              type="button"
-              aria-label="Close panel"
-              onClick={() => setMobileSheet(null)}
-              className="w-10 h-10 inline-flex items-center justify-center rounded-lg"
-            >
-              <X className="w-4 h-4" />
-            </button>
+          <div className="px-4 py-3 border-b border-[var(--border-hairline)] flex items-center justify-between gap-2">
+            <span className="font-semibold text-sm capitalize">
+              {mobileSheet === 'layers'
+                ? 'Theme & Page'
+                : mobileSheet === 'elements'
+                ? 'Elements Studio'
+                : mobileSheet === 'insert'
+                ? 'Add to Page'
+                : mobileSheet}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                aria-label="Select all elements"
+                onClick={selectAllOnActiveSlide}
+                className="px-2 py-1 rounded-lg border border-[var(--border-hairline)] text-[11px] font-medium inline-flex items-center gap-1"
+              >
+                <CheckSquare className="w-3.5 h-3.5" /> All
+              </button>
+              <button
+                type="button"
+                aria-label="Close panel"
+                onClick={() => setMobileSheet(null)}
+                className="w-9 h-9 inline-flex items-center justify-center rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           <div className="p-4 overflow-y-auto flex-1">
-            {mobileSheet === 'slides' && (
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  onClick={addSlide}
-                  className="w-full min-h-[44px] rounded-lg bg-[var(--accent)] text-white text-sm font-semibold"
-                >
-                  + Add New Slide
-                </button>
-                <div className="grid grid-cols-2 gap-3">
-                  {doc.slides.map((sl, idx) => (
-                    <button
-                      key={sl.id}
-                      type="button"
-                      onClick={() => {
-                        selectSlide(sl.id);
-                        setMobileSheet(null);
-                      }}
-                      className={`p-2 rounded-lg border text-left ${
-                        sl.id === activeSlide.id ? 'border-[var(--accent)] bg-[var(--accent-soft)]' : 'border-[var(--border-hairline)]'
-                      }`}
-                    >
-                      <div className="text-xs font-mono-tabular mb-1">Slide {idx + 1}</div>
-                      <div className="text-xs font-medium truncate">{sl.title}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {mobileSheet === 'elements' && (
+              <MobileElementsBrowser
+                key={`${mobileBrowseTab}-${mobileElemCat}`}
+                doc={doc}
+                fontCatalog={fontCatalog}
+                initialTab={mobileBrowseTab}
+                initialElemCat={mobileElemCat}
+                uploads={uploads}
+                uploadingAssets={uploadingAssets}
+                isDrawingFrame={isDrawingFrame}
+                onUploadAssets={handleUploadAssets}
+                onDeleteUpload={handleDeleteUpload}
+                onInsertUploadedImage={(url, name) => {
+                  insertOrSlotImageUrl(url, name, doc.width / 2, doc.height / 2);
+                  setMobileSheet(null);
+                }}
+                onInsertCutout={insertCutoutElement}
+                onInsertShape={insertShapeElement}
+                onInsertIcon={insertIconElement}
+                onInsertTextPreset={insertTextPresetElement}
+                onInsertRetroTv={handleInsertRetroTvFrame}
+                onInsertPhotoFrame={handleInsertPhotoFrame}
+                onStartFreedrawFrame={() => {
+                  setMobileSheet(null);
+                  setCroppingElementId(null);
+                  selectElements([]);
+                  setIsDrawingFrame(true);
+                }}
+                onInsertRetroDialog={handleInsertRetroDialog}
+              />
             )}
             {mobileSheet === 'insert' && (
-              <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={() => insertTextPresetElement()} className="min-h-[44px] p-3 rounded-lg border border-[var(--border-hairline)] text-xs font-medium">
-                  Add Text Box
-                </button>
-                <button type="button" onClick={() => insertShapeElement('rounded-rect')} className="min-h-[44px] p-3 rounded-lg border border-[var(--border-hairline)] text-xs font-medium">
-                  Add Shape
-                </button>
-                <button type="button" onClick={insertChartElement} className="min-h-[44px] p-3 rounded-lg border border-[var(--border-hairline)] text-xs font-medium">
-                  Add Chart
-                </button>
-                <button type="button" onClick={insertTableElement} className="min-h-[44px] p-3 rounded-lg border border-[var(--border-hairline)] text-xs font-medium">
-                  Add Table
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileSheet(null);
-                    setCutoutModalState({ open: true });
-                  }}
-                  className="col-span-2 min-h-[44px] p-3 rounded-lg border border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-semibold flex items-center justify-center gap-2"
-                >
-                  <Scissors className="w-4 h-4" /> Photo Cutout Studio (Auto / Manual)
-                </button>
-                <label className="col-span-2 min-h-[44px] p-3 rounded-lg border border-[var(--border-hairline)] text-xs font-medium flex items-center justify-center gap-2 cursor-pointer">
-                  <ImageIcon className="w-4 h-4" />
-                  <span aria-hidden="true">Upload &amp; Insert Raw Image</span>
-                  <input
-                    type="file"
-                    aria-label="Upload and insert image"
-                    accept=".png,.jpg,.jpeg,.webp,.svg"
-                    onChange={handleInsertImageUpload}
-                    className="sr-only"
-                  />
-                </label>
-                <button type="button" onClick={() => setShowInsertCompModal(true)} className="col-span-2 min-h-[44px] p-3 rounded-lg bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-semibold">
-                  Insert Custom Component
-                </button>
-              </div>
+              <MobileInsertHub
+                canGroup={canGroup}
+                canUngroup={canUngroup}
+                onInsertTextBox={() => insertTextPresetElement()}
+                onOpenShapesBrowser={() => {
+                  setMobileBrowseTab('elements');
+                  setMobileElemCat('Shapes');
+                  setMobileSheet('elements');
+                }}
+                onOpenElementsBrowser={() => {
+                  setMobileBrowseTab('elements');
+                  setMobileElemCat('All');
+                  setMobileSheet('elements');
+                }}
+                onInsertChart={(preset) => insertChartElement(preset)}
+                onInsertTable={(preset) => insertTableElement(preset)}
+                onOpenCutoutStudio={() => {
+                  setMobileSheet(null);
+                  setCutoutModalState({ open: true });
+                }}
+                onUploadRawImage={handleInsertImageUpload}
+                onStartFreedrawFrame={() => {
+                  setMobileSheet(null);
+                  setCroppingElementId(null);
+                  selectElements([]);
+                  setIsDrawingFrame(true);
+                }}
+                onOpenComponentsModal={() => {
+                  setMobileSheet(null);
+                  setShowInsertCompModal(true);
+                }}
+                onOpenPageSetup={() => {
+                  setMobileSheet(null);
+                  setShowResizeModal(true);
+                }}
+                onSelectAll={() => {
+                  selectAllOnActiveSlide();
+                  setMobileSheet(null);
+                }}
+                onGroup={() => {
+                  groupSelectedElements();
+                  setMobileSheet(null);
+                }}
+                onUngroup={() => {
+                  ungroupSelectedElements();
+                  setMobileSheet(null);
+                }}
+              />
             )}
             {mobileSheet === 'edit' && renderInspectorContent()}
-            {mobileSheet === 'layers' && renderThemeAndQualityContent()}
+            {mobileSheet === 'layers' && (
+              <div className="space-y-4">
+                <div className="p-3 rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)] flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs font-semibold">Page Size &amp; Margins</div>
+                    <div className="text-[11px] text-[var(--text-secondary)]">
+                      {doc.aspectRatio.toUpperCase()} · {doc.width}×{doc.height}px
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileSheet(null);
+                      setShowResizeModal(true);
+                    }}
+                    className="px-3 py-2 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold"
+                  >
+                    Resize
+                  </button>
+                </div>
+                {renderThemeAndQualityContent()}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2439,6 +4550,70 @@ export function EditorPage({ presentationId }: { presentationId: string }) {
           }
         }}
       />
+
+      {/* Page Resize & Margin Modal */}
+      <PageSetupModal
+        isOpen={showResizeModal}
+        doc={doc}
+        onClose={() => setShowResizeModal(false)}
+        onApplyResize={(w, h, ratio, scaleEls) => resizeDocument(w, h, ratio, scaleEls)}
+        onUpdateMargin={(margin, showM) => updatePageMargin(margin, showM)}
+        onOpenBookPreview={() => openPresentMode('book')}
+      />
+
+      {/* Keyboard Shortcuts Modal */}
+      {showShortcutsModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Keyboard shortcuts"
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+        >
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-hairline)] rounded-2xl max-w-lg w-full p-6 space-y-4 max-h-[85vh] overflow-y-auto shadow-[var(--shadow-float)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Keyboard className="w-5 h-5 text-[var(--accent)]" />
+                <h2 className="font-display text-lg font-bold">Shortcuts &amp; Gestures</h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Close shortcuts"
+                onClick={() => setShowShortcutsModal(false)}
+                className="w-9 h-9 inline-flex items-center justify-center rounded-lg border border-[var(--border-hairline)]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              {[
+                ['Select All Elements', 'Ctrl + A'],
+                ['Group Selected Elements', 'Ctrl + G'],
+                ['Ungroup Elements', 'Ctrl + Shift + G'],
+                ['Duplicate Selection', 'Ctrl + D'],
+                ['Copy / Paste Selection', 'Ctrl + C / Ctrl + V'],
+                ['Undo / Redo', 'Ctrl + Z / Ctrl + Y'],
+                ['Bring Forward / Send Backward', '] / ['],
+                ['Zoom In / Zoom Out / Reset Fit', 'Ctrl + = / - / 0'],
+                ['Zoom Smoothly (Mouse Wheel)', 'Ctrl + Scroll'],
+                ['Delete Selected', 'Delete / Backspace'],
+                ['Save Snapshot', 'Ctrl + S'],
+                ['Mobile Multi-Select', 'Long-press + Drag'],
+              ].map(([label, keys]) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--bg-canvas)] border border-[var(--border-hairline)]"
+                >
+                  <span className="font-medium">{label}</span>
+                  <kbd className="px-2 py-0.5 rounded bg-[var(--bg-surface)] border border-[var(--border-strong)] font-mono-tabular text-[11px] font-semibold">
+                    {keys}
+                  </kbd>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

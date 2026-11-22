@@ -1,21 +1,287 @@
+import React, { useState } from 'react';
 import type { CustomComponentElement, DesignTokens } from '../../core/schema';
 import { Y2KStickerRenderer } from './Y2KStickerRenderer';
 
 interface Props {
   element: CustomComponentElement;
   tokens: DesignTokens;
+  scale?: number;
+  interactive?: boolean;
+  isDropTarget?: boolean;
+  isCropping?: boolean;
+  onCommitSnapshot?: () => void;
+  onUpdateMediaCropLive?: (cropX: number, cropY: number) => void;
+  onCommitPropsPatch?: (propsPatch: Record<string, unknown>) => void;
 }
 
-export function CustomComponentView({ element, tokens }: Props) {
+export function CustomComponentView({
+  element,
+  tokens,
+  scale,
+  interactive,
+  isDropTarget,
+  isCropping,
+  onCommitSnapshot,
+  onUpdateMediaCropLive,
+  onCommitPropsPatch,
+}: Props) {
   const { componentKey, props } = element;
+  const [editingDialog, setEditingDialog] = useState(false);
 
   if (
     componentKey === 'retro-tv-frame' ||
+    componentKey === 'photo-frame' ||
     componentKey === 'birthday-flip-calendar' ||
     componentKey === 'y2k-collage-sticker' ||
     componentKey === 'cutout-illustration'
   ) {
-    return <Y2KStickerRenderer element={element} />;
+    return (
+      <Y2KStickerRenderer
+        element={element}
+        scale={scale}
+        interactive={interactive}
+        isDropTarget={isDropTarget}
+        isCropping={isCropping}
+        onCommitSnapshot={onCommitSnapshot}
+        onUpdateMediaCropLive={onUpdateMediaCropLive}
+      />
+    );
+  }
+
+  if (componentKey === 'retro-os-dialog') {
+    const osStyle = String(props.osStyle || 'win98-classic');
+    const isXp = osStyle === 'winxp-luna';
+    const variant = String(props.dialogVariant || 'error');
+    const title = String(props.title ?? 'SYSTEM ERROR');
+    const message = String(props.message ?? 'ERROR_NOT_ENOUGH_MEMORY');
+    const primaryBtn = String(props.primaryButton ?? 'OK');
+    const secondaryBtn = String(props.secondaryButton ?? '').trim();
+    const progress = Math.max(0, Math.min(100, Number(props.progressPercent ?? 55)));
+    const titleBarColor = String(props.titleBarColor || (isXp ? '#0054E3' : '#000080'));
+    const bodyBg = String(props.bodyBgColor || (isXp ? '#ECE9D8' : '#C0C0C0'));
+    const textColor = String(props.textColor || '#111827');
+
+    const bevelStyle: React.CSSProperties = isXp
+      ? {
+          backgroundColor: bodyBg,
+          border: '2px solid #003C9D',
+          borderRadius: '8px',
+          boxShadow: '0 10px 26px rgba(15, 23, 42, 0.28)',
+        }
+      : {
+          backgroundColor: bodyBg,
+          borderTop: '2px solid #FFFFFF',
+          borderLeft: '2px solid #FFFFFF',
+          borderRight: '2px solid #404040',
+          borderBottom: '2px solid #404040',
+          boxShadow: 'inset 1px 1px 0 #DFDFDF, inset -1px -1px 0 #808080, 4px 6px 18px rgba(0,0,0,0.22)',
+        };
+
+    const btnBevelStyle: React.CSSProperties = isXp
+      ? {
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #E5E3D8 100%)',
+          border: '1px solid #003C74',
+          borderRadius: '4px',
+          color: textColor,
+        }
+      : {
+          backgroundColor: bodyBg,
+          borderTop: '2px solid #FFFFFF',
+          borderLeft: '2px solid #FFFFFF',
+          borderRight: '2px solid #404040',
+          borderBottom: '2px solid #404040',
+          color: textColor,
+        };
+
+    const renderVariantIcon = () => {
+      if (variant === 'warning') {
+        return (
+          <svg viewBox="0 0 48 48" className="w-11 h-11 shrink-0">
+            <polygon points="24,4 45,42 3,42" fill="#FACC15" stroke="#111827" strokeWidth="2.2" strokeLinejoin="round" />
+            <rect x="22" y="16" width="4" height="14" rx="1" fill="#111827" />
+            <circle cx="24" cy="35" r="2.4" fill="#111827" />
+          </svg>
+        );
+      }
+      if (variant === 'success') {
+        return (
+          <svg viewBox="0 0 48 48" className="w-11 h-11 shrink-0">
+            <circle cx="24" cy="24" r="20" fill="#16A34A" stroke="#14532D" strokeWidth="1.5" />
+            <path d="M14 24 L21 31 L34 17" fill="none" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      }
+      if (variant === 'info') {
+        return (
+          <svg viewBox="0 0 48 48" className="w-11 h-11 shrink-0">
+            <circle cx="24" cy="24" r="20" fill="#2563EB" stroke="#1E3A8A" strokeWidth="1.5" />
+            <circle cx="24" cy="15" r="2.6" fill="#FFFFFF" />
+            <rect x="21.5" y="21" width="5" height="14" rx="2" fill="#FFFFFF" />
+          </svg>
+        );
+      }
+      return (
+        <svg viewBox="0 0 48 48" className="w-11 h-11 shrink-0">
+          <circle cx="24" cy="24" r="20" fill="#DC2626" stroke="#7F1D1D" strokeWidth="1.5" />
+          <path d="M15 15 L33 33 M33 15 L15 33" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
+        </svg>
+      );
+    };
+
+    return (
+      <div
+        onDoubleClick={(e) => {
+          if (!interactive || element.locked) return;
+          e.stopPropagation();
+          setEditingDialog(true);
+        }}
+        className="w-full h-full flex flex-col overflow-hidden select-none"
+        style={bevelStyle}
+      >
+        {/* OS Title Bar */}
+        <div
+          className="h-8 px-2.5 flex items-center justify-between gap-2 shrink-0"
+          style={{
+            background: `linear-gradient(90deg, ${titleBarColor} 0%, ${isXp ? '#3B8CF7' : '#1084D0'} 100%)`,
+          }}
+        >
+          {editingDialog ? (
+            <input
+              type="text"
+              value={title}
+              autoFocus
+              onPointerDown={(e) => e.stopPropagation()}
+              onChange={(e) => onCommitPropsPatch?.({ title: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' || e.key === 'Enter') setEditingDialog(false);
+              }}
+              aria-label="Edit error dialog title"
+              className="flex-1 min-w-0 bg-white/95 text-neutral-900 text-xs font-bold px-1.5 py-0.5 rounded-xs outline-none"
+            />
+          ) : (
+            <span className="text-white font-bold text-xs tracking-wide truncate">{title}</span>
+          )}
+          <div className="flex items-center gap-1 shrink-0">
+            <span
+              className="w-4 h-4 flex items-center justify-center text-[10px] font-bold leading-none"
+              style={
+                isXp
+                  ? { backgroundColor: '#2563EB', color: '#FFFFFF', border: '1px solid #FFFFFF', borderRadius: '2px' }
+                  : { ...btnBevelStyle, borderWidth: '1px' }
+              }
+            >
+              _
+            </span>
+            <span
+              className="w-4 h-4 flex items-center justify-center text-[10px] font-bold leading-none"
+              style={
+                isXp
+                  ? { backgroundColor: '#DC2626', color: '#FFFFFF', border: '1px solid #FFFFFF', borderRadius: '2px' }
+                  : { ...btnBevelStyle, borderWidth: '1px' }
+              }
+            >
+              ×
+            </span>
+          </div>
+        </div>
+
+        {/* Body Content */}
+        <div className="flex-1 flex flex-col justify-between p-4 gap-3 min-h-0">
+          {variant === 'progress' ? (
+            <div className="flex-1 flex flex-col justify-center gap-2.5">
+              {editingDialog ? (
+                <textarea
+                  rows={2}
+                  value={message}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onChange={(e) => onCommitPropsPatch?.({ message: e.target.value })}
+                  aria-label="Edit error dialog message"
+                  className="w-full bg-white text-neutral-900 text-xs p-1.5 border border-slate-400 outline-none resize-none"
+                />
+              ) : (
+                <div className="text-xs font-medium whitespace-pre-wrap break-words" style={{ color: textColor }}>
+                  {message}
+                </div>
+              )}
+              <div className="w-full h-5 bg-white border border-neutral-500 p-0.5">
+                <div className="h-full" style={{ width: `${progress}%`, backgroundColor: titleBarColor }} />
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center gap-4 min-h-0">
+              {renderVariantIcon()}
+              {editingDialog ? (
+                <textarea
+                  rows={3}
+                  value={message}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onChange={(e) => onCommitPropsPatch?.({ message: e.target.value })}
+                  aria-label="Edit error dialog message"
+                  className="flex-1 bg-white text-neutral-900 text-xs p-1.5 border border-slate-400 outline-none resize-none"
+                />
+              ) : (
+                <div
+                  className="flex-1 text-sm leading-snug font-medium whitespace-pre-wrap break-words"
+                  style={{ color: textColor }}
+                >
+                  {message}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-center gap-3 shrink-0">
+            {editingDialog ? (
+              <>
+                <input
+                  type="text"
+                  value={primaryBtn}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onChange={(e) => onCommitPropsPatch?.({ primaryButton: e.target.value })}
+                  aria-label="Primary button text"
+                  className="w-24 h-7 px-2 text-center text-xs font-semibold bg-white border border-slate-500"
+                />
+                <input
+                  type="text"
+                  value={secondaryBtn}
+                  placeholder="Optional 2nd"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onChange={(e) => onCommitPropsPatch?.({ secondaryButton: e.target.value })}
+                  aria-label="Secondary button text"
+                  className="w-24 h-7 px-2 text-center text-xs font-semibold bg-white border border-slate-500"
+                />
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => setEditingDialog(false)}
+                  className="px-2.5 h-7 rounded bg-[#7D1935] text-white text-[11px] font-semibold"
+                >
+                  Done
+                </button>
+              </>
+            ) : (
+              <>
+                <div
+                  className="min-w-[88px] px-4 py-1.5 text-center text-xs font-semibold"
+                  style={btnBevelStyle}
+                >
+                  {primaryBtn || 'OK'}
+                </div>
+                {secondaryBtn && (
+                  <div
+                    className="min-w-[88px] px-4 py-1.5 text-center text-xs font-semibold"
+                    style={btnBevelStyle}
+                  >
+                    {secondaryBtn}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const accent = String(props.accentColor || tokens.colors.accent);
